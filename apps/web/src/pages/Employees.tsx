@@ -2,6 +2,15 @@ import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import type { Employee, Location } from '@sigeo/shared';
 
+type EmployeeStatus = 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE';
+type EmployeeFormState = {
+  name: string;
+  cpf: string;
+  role: string;
+  status: EmployeeStatus;
+  unitId: string;
+};
+
 export function Employees() {
   const [showForm, setShowForm] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -10,7 +19,13 @@ export function Employees() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ name: '', cpf: '', role: '', status: 'ACTIVE' as const, unitId: '' });
+  const [form, setForm] = useState<EmployeeFormState>({
+    name: '',
+    cpf: '',
+    role: '',
+    status: 'ACTIVE',
+    unitId: '',
+  });
 
   const load = async () => {
     try {
@@ -143,7 +158,7 @@ export function Employees() {
             </select>
             <select
               value={form.status}
-              onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE' }))}
+              onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as EmployeeStatus }))}
               className="px-3 py-2 border rounded-lg"
             >
               <option value="ACTIVE">Ativo</option>
