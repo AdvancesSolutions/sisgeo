@@ -1,7 +1,10 @@
 import axios from 'axios';
 
 const baseURL =
-  import.meta.env.VITE_API_URL ??
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname.includes('amplifyapp.com')
+    ? 'https://fxhzyn3pgp.us-east-1.awsapprunner.com'
+    : undefined) ||
   (import.meta.env.DEV ? '/api' : 'http://localhost:3000');
 
 export const api = axios.create({

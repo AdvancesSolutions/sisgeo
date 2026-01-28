@@ -8,6 +8,7 @@ export function Employees() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: '', cpf: '', role: '', status: 'ACTIVE' as const, unitId: '' });
 
@@ -43,6 +44,7 @@ export function Employees() {
     try {
       setSaving(true);
       setError(null);
+      setSuccess(null);
       await api.post('/employees', {
         name: form.name.trim(),
         cpf: form.cpf.trim() || undefined,
@@ -50,14 +52,20 @@ export function Employees() {
         status: form.status,
         unitId: form.unitId,
       });
-      setForm({ name: '', cpf: '', role: '', status: 'ACTIVE', unitId: form.unitId });
+      setForm((f) => ({ name: '', cpf: '', role: '', status: 'ACTIVE', unitId: f.unitId }));
       setShowForm(false);
+      setSuccess('Funcionário cadastrado.');
       await load();
     } catch (e: unknown) {
-      const msg = e && typeof e === 'object' && 'response' in e
-        ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
-        : null;
-      setError(msg || (e instanceof Error ? e.message : 'Erro ao salvar'));
+      let msg = 'Erro ao salvar.';
+      if (e && typeof e === 'object' && 'response' in e) {
+        const res = (e as { response?: { data?: { message?: string }; status?: number } }).response;
+        msg = res?.data?.message ?? (res?.status === 401 ? 'Faça login novamente.' : `Erro ${res?.status ?? 'rede'}.`);
+      } else if (e instanceof Error) {
+        msg = e.message;
+      }
+      setError(msg);
+      setSuccess(null);
     } finally {
       setSaving(false);
     }
@@ -82,6 +90,11 @@ export function Employees() {
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
           {error}
+        </div>
+      )}
+      {success && (
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+          {success}
         </div>
       )}
       {showForm && (
