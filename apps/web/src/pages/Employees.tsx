@@ -87,7 +87,16 @@ export function Employees() {
       {showForm && (
         <div className="mb-4 p-4 bg-white rounded-lg border border-slate-200">
           <h2 className="font-medium text-slate-700 mb-3">Novo funcionário</h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <form
+            action="#"
+            method="post"
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSubmit(e);
+            }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+          >
             <input
               placeholder="Nome"
               value={form.name}
@@ -129,8 +138,15 @@ export function Employees() {
               <option value="ON_LEAVE">Afastado</option>
             </select>
             <button
-              type="submit"
+              type="button"
               disabled={saving}
+              onClick={() => {
+                if (form.name.trim() && form.role.trim() && form.unitId) {
+                  handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+                } else {
+                  setError('Preencha Nome, Função e Unidade.');
+                }
+              }}
               className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 disabled:opacity-50"
             >
               {saving ? 'Salvando...' : 'Salvar'}
