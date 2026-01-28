@@ -13,8 +13,10 @@ $Awsexe = "C:\Program Files\Amazon\AWSCLIV2\aws.exe"
 $Root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 function Test-Aws {
-    & $Awsexe sts get-caller-identity 2>&1 | Out-Null
-    return $LASTEXITCODE -eq 0
+    try {
+        $null = & $Awsexe sts get-caller-identity 2>&1
+        return $LASTEXITCODE -eq 0
+    } catch { return $false }
 }
 
 function Get-AccountId {
