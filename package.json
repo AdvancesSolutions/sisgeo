@@ -1,0 +1,23 @@
+{
+  "name": "sigeo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SIGEO - Gestão Operacional",
+  "scripts": {
+    "dev": "pnpm run --parallel dev",
+    "dev:web": "pnpm --filter @sigeo/web dev",
+    "dev:api": "pnpm --filter @sigeo/api start:dev",
+    "build": "pnpm run -r build",
+    "build:web": "pnpm --filter @sigeo/web build",
+    "build:api": "pnpm --filter @sigeo/api build",
+    "lint": "pnpm run -r lint",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "db:seed": "pnpm --filter @sigeo/api db:seed"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@9.14.2"
+}
