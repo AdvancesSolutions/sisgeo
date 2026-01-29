@@ -55,6 +55,8 @@ git push -u origin main
 
 ## 5. App Runner (API)
 
+**Se aparecer "SubscriptionRequiredException" ou "needs a subscription"**: acesse **AWS Console** → **App Runner** → **Get started** (ou "Introdução") para habilitar o serviço na conta.
+
 - **AWS Console** → **App Runner** → **Create service**.
 - **Source**: Container registry → ECR → imagem `sigeo-api:latest`.
 - **Port**: `3000`.

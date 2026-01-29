@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ExternalLink, Plus } from 'lucide-react';
 import api from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Task, Area, Employee } from '@sigeo/shared';
 
 type TaskFormState = {
@@ -9,7 +12,17 @@ type TaskFormState = {
   title: string;
 };
 
+const STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Pendente',
+  IN_PROGRESS: 'Em execução',
+  IN_REVIEW: 'Em validação',
+  DONE: 'Concluída',
+  REJECTED: 'Rejeitada',
+};
+
 export function Tasks() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
@@ -102,13 +115,16 @@ export function Tasks() {
     <div>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-xl font-bold text-slate-800">Tarefas / Serviços</h1>
-        <button
-          type="button"
-          onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 text-sm font-medium"
-        >
-          {showForm ? 'Cancelar' : 'Nova'}
-        </button>
+        {user?.role === 'ADMIN' && (
+          <button
+            type="button"
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 text-sm font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            {showForm ? 'Cancelar' : 'Nova'}
+          </button>
+        )}
       </div>
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
@@ -197,10 +213,19 @@ export function Tasks() {
                   <td className="px-4 py-3">{r.title ?? '(sem título)'}</td>
                   <td className="px-4 py-3">{formatDate(r.scheduledDate)}</td>
                   <td className="px-4 py-3">
-                    <span className="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-700">{r.status}</span>
+                    <span className="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-700">
+                      {STATUS_LABEL[r.status] ?? r.status}
+                    </span>
                   </td>
                   <td className="px-4 py-3">
-                    <button type="button" className="text-slate-600 hover:underline mr-2">Editar</button>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/tasks/${r.id}`)}
+                      className="flex items-center gap-1 text-sky-600 hover:underline text-sm"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Ver
+                    </button>
                   </td>
                 </tr>
               ))

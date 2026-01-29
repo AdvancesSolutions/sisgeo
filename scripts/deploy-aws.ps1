@@ -10,7 +10,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $Awsexe = "C:\Program Files\Amazon\AWSCLIV2\aws.exe"
-$Root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$Root = Split-Path -Parent $PSScriptRoot
 
 function Test-Aws {
     try {
@@ -51,9 +51,13 @@ Write-Host "[OK] AWS: Account $AccountId, Region $AwsRegion" -ForegroundColor Gr
 # 2. ECR repo
 Write-Host ""
 Write-Host "[2/4] ECR repository $EcrRepo..." -ForegroundColor Cyan
-$exists = & $Awsexe ecr describe-repositories --repository-names $EcrRepo --region $AwsRegion 2>&1
-if ($LASTEXITCODE -ne 0) {
-    & $Awsexe ecr create-repository --repository-name $EcrRepo --region $AwsRegion | Out-Null
+$ecrExists = $false
+try {
+    $null = & $Awsexe ecr describe-repositories --repository-names $EcrRepo --region $AwsRegion 2>$null
+    if ($LASTEXITCODE -eq 0) { $ecrExists = $true }
+} catch { }
+if (-not $ecrExists) {
+    & $Awsexe ecr create-repository --repository-name $EcrRepo --region $AwsRegion 2>$null | Out-Null
     Write-Host "      Criado." -ForegroundColor Green
 } else {
     Write-Host "      Ja existe." -ForegroundColor Green
@@ -69,26 +73,33 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Falha login ECR"; exit 1 }
 Write-Host "      OK." -ForegroundColor Green
 
 # 4. Build + Push
-if (-not $SkipBuild) {
-    Write-Host ""
-    Write-Host "[4/4] Docker build..." -ForegroundColor Cyan
-    Push-Location $Root
-    docker build -f apps/api/Dockerfile -t "${EcrRepo}:latest" -t $ImageUri . 2>&1
-    Pop-Location
-    if ($LASTEXITCODE -ne 0) { Write-Host "Falha build"; exit 1 }
-    Write-Host "      OK." -ForegroundColor Green
-} else {
-    Write-Host "[4/4] Build ignorado (--SkipBuild)." -ForegroundColor Gray
-}
+$prevErrPref = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+try {
+    if (-not $SkipBuild) {
+        Write-Host ""
+        Write-Host "[4/4] Docker build..." -ForegroundColor Cyan
+        Push-Location $Root
+        docker build -f apps/api/Dockerfile -t "${EcrRepo}:latest" -t $ImageUri .
+        $buildOk = $LASTEXITCODE -eq 0
+        Pop-Location
+        if (-not $buildOk) { Write-Host "Falha build"; exit 1 }
+        Write-Host "      OK." -ForegroundColor Green
+    } else {
+        Write-Host "[4/4] Build ignorado (--SkipBuild)." -ForegroundColor Gray
+    }
 
-if (-not $SkipPush) {
-    Write-Host ""
-    Write-Host "      Docker push $ImageUri..." -ForegroundColor Cyan
-    docker push $ImageUri 2>&1
-    if ($LASTEXITCODE -ne 0) { Write-Host "Falha push"; exit 1 }
-    Write-Host "      OK." -ForegroundColor Green
-} else {
-    Write-Host "      Push ignorado (--SkipPush)." -ForegroundColor Gray
+    if (-not $SkipPush) {
+        Write-Host ""
+        Write-Host "      Docker push $ImageUri..." -ForegroundColor Cyan
+        docker push $ImageUri
+        if ($LASTEXITCODE -ne 0) { Write-Host "Falha push"; exit 1 }
+        Write-Host "      OK." -ForegroundColor Green
+    } else {
+        Write-Host "      Push ignorado (--SkipPush)." -ForegroundColor Gray
+    }
+} finally {
+    $ErrorActionPreference = $prevErrPref
 }
 
 Write-Host ""

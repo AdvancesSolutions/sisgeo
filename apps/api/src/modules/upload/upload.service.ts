@@ -21,27 +21,31 @@ export class UploadService {
     file: Express.Multer.File,
     prefix: string,
     key?: string,
+    opts?: { taskId?: string; type?: string },
   ): Promise<{ url: string; key: string }> {
-    const name = key ?? `${prefix}/${Date.now()}-${file.originalname}`;
+    const pathPrefix =
+      opts?.taskId && opts?.type ? `${prefix}/${opts.taskId}/${opts.type}` : prefix;
+    const name = `${Date.now()}-${file.originalname}`;
+    const fullKey = key ?? `${pathPrefix}/${name}`;
 
     if (this.s3 && BUCKET) {
       await this.s3.send(
         new PutObjectCommand({
           Bucket: BUCKET,
-          Key: name,
+          Key: fullKey,
           Body: file.buffer,
           ContentType: file.mimetype,
         }),
       );
-      const url = `https://${BUCKET}.s3.${REGION}.amazonaws.com/${name}`;
-      return { url, key: name };
+      const url = `https://${BUCKET}.s3.${REGION}.amazonaws.com/${fullKey}`;
+      return { url, key: fullKey };
     }
 
     await mkdir(UPLOAD_DIR, { recursive: true });
-    const dest = join(UPLOAD_DIR, name);
-    await mkdir(join(UPLOAD_DIR, prefix), { recursive: true });
+    const dest = join(UPLOAD_DIR, fullKey);
+    await mkdir(join(UPLOAD_DIR, pathPrefix), { recursive: true });
     await pipeline(Readable.from(file.buffer), createWriteStream(dest));
-    const url = `/uploads/${name}`;
-    return { url, key: name };
+    const url = `/uploads/${fullKey}`;
+    return { url, key: fullKey };
   }
 }

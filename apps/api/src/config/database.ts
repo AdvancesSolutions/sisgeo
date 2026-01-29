@@ -1,8 +1,11 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
+const host = process.env.DB_HOST ?? 'localhost';
+const isRds = host !== 'localhost' && !host.startsWith('127.');
+
 export const getDbConfig = (): TypeOrmModuleOptions => ({
   type: 'postgres',
-  host: process.env.DB_HOST ?? 'localhost',
+  host,
   port: parseInt(process.env.DB_PORT ?? '5432', 10),
   username: process.env.DB_USER ?? 'postgres',
   password: process.env.DB_PASSWORD ?? 'postgres',
@@ -10,4 +13,5 @@ export const getDbConfig = (): TypeOrmModuleOptions => ({
   autoLoadEntities: true,
   synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV === 'development',
+  ...(isRds && { ssl: { rejectUnauthorized: false } }),
 });

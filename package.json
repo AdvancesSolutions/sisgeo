@@ -4,9 +4,12 @@
   "private": true,
   "description": "SIGEO - Gestão Operacional",
   "scripts": {
+    "start": "pnpm --filter @sigeo/mobile start",
+    "stop": "npx kill-port 8081 8084 3000",
     "dev": "pnpm run --parallel dev",
     "dev:web": "pnpm --filter @sigeo/web dev",
     "dev:api": "pnpm --filter @sigeo/api start:dev",
+    "dev:mobile": "pnpm --filter @sigeo/mobile dev",
     "build": "pnpm run -r build",
     "build:web": "pnpm --filter @sigeo/web build",
     "build:api": "pnpm --filter @sigeo/api build",
@@ -19,5 +22,11 @@
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "pnpm@9.14.2"
+  "packageManager": "pnpm@9.14.2",
+  "pnpm": {
+    "overrides": {
+      "react": "19.1.0",
+      "react-dom": "19.1.0"
+    }
+  }
 }
