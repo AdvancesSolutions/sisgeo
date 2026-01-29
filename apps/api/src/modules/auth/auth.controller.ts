@@ -1,5 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthService, LoginResult } from './auth.service';
 import { loginSchema, refreshTokenSchema } from '@sigeo/shared';
 
@@ -20,5 +22,13 @@ export class AuthController {
   async refresh(@Body() body: unknown): Promise<LoginResult> {
     const { refreshToken } = refreshTokenSchema.parse(body);
     return this.auth.refresh(refreshToken);
+  }
+
+  @Get('me')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Usuário autenticado' })
+  async me(@CurrentUser('sub') sub: string) {
+    return this.auth.getMe(sub);
   }
 }

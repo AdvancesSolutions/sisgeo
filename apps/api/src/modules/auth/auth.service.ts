@@ -35,6 +35,12 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
+  async getMe(userId: string): Promise<{ id: string; name: string; email: string; role: string }> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('Usuário não encontrado');
+    return { id: user.id, name: user.name, email: user.email, role: user.role };
+  }
+
   async refresh(refreshToken: string): Promise<LoginResult> {
     try {
       const payload = this.jwt.verify(refreshToken, { secret: REFRESH_SECRET }) as {

@@ -13,6 +13,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "db:seed": "ts-node -r tsconfig-paths/register src/db/seed.ts",
+    "db:bootstrap": "ts-node -r tsconfig-paths/register src/db/bootstrap.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -42,6 +43,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.20",
+    "multer": "^1.4.5-lts.1",
     "dotenv": "^16.4.5",
     "uuid": "^11.0.3"
   },

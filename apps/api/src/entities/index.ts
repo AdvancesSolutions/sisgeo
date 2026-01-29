@@ -3,6 +3,7 @@ export { Employee } from './employee.entity';
 export { Location } from './location.entity';
 export { Area } from './area.entity';
 export { Task } from './task.entity';
+export { TaskPhoto } from './task-photo.entity';
 export { Material } from './material.entity';
 export { TimeClock } from './time-clock.entity';
 export { AuditLog } from './audit-log.entity';

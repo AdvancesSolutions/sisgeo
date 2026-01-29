@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "SIGEO Mobile",
+    "slug": "sigeo-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sigeo.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "SIGEO precisa da câmera para registrar fotos de serviço.",
+        "NSLocationWhenInUseUsageDescription": "SIGEO precisa da localização para registro de ponto e fotos."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.sigeo.mobile",
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "CAMERA"]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "placeholder"
+      }
+    }
+  }
+}
