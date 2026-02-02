@@ -131,7 +131,10 @@ export function TaskDetail() {
   const photosBefore = task.photos?.filter((p) => p.type === 'BEFORE') ?? [];
   const photosAfter = task.photos?.filter((p) => p.type === 'AFTER') ?? [];
   const canValidate = user?.role === 'ADMIN' && task.status === 'IN_REVIEW';
-  const baseUrl = import.meta.env.VITE_API_URL || '';
+  let baseUrl = import.meta.env.VITE_API_URL || '';
+  if (typeof window !== 'undefined' && window.location?.protocol === 'https:' && baseUrl.startsWith('http://')) {
+    baseUrl = baseUrl.replace(/^http:\/\//i, 'https://');
+  }
 
   return (
     <div className="space-y-6">
