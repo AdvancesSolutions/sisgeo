@@ -6,10 +6,13 @@ import { join } from 'path';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
+
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   app.use(helmet({ contentSecurityPolicy: false }));
 
