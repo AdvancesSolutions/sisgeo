@@ -4,6 +4,8 @@ O projeto está configurado para usar **sa-east-1** como região padrão. Recurs
 
 **Estado atual:** Tudo em **sa-east-1**: Web (Amplify), API (ECS Fargate atrás de ALB + CloudFront HTTPS), RDS. O App Runner em us-east-1 foi removido.
 
+**URL fixa / domínio customizado:** Se a URL parece mudar a cada deploy ou você quer uma URL fixa sob seu controle (ex.: `app.seudominio.com` e `api.seudominio.com`), veja **[URL-FIXA-CUSTOM-DOMAIN.md](./URL-FIXA-CUSTOM-DOMAIN.md)**. Para usar o domínio **advances.com.br** (Registro.br / DreamHost) na AWS, veja **[DOMINIO-ADVANCES-AWS.md](./DOMINIO-ADVANCES-AWS.md)**.
+
 ---
 
 ## 1. Página não abre (404 em rotas)
@@ -99,3 +101,21 @@ Use isso para subir o ambiente inteiro em sa-east-1; depois aplique o rewrite SP
 
 Para reduzir custos, veja **docs/REDUCAO-CUSTOS-AWS.md**.  
 Para deploy da API (nova imagem), use `.\scripts\deploy-aws.ps1 -AwsRegion sa-east-1` e depois force novo deploy do serviço ECS: `aws ecs update-service --cluster sigeo-cluster --service sigeo-api --force-new-deployment --region sa-east-1`.
+
+---
+
+## 6. Internal Server Error ao cadastrar (locais, funcionários, áreas, etc.)
+
+Se ao criar qualquer registro aparecer **Internal Server Error**:
+
+1. **Logs da API:** No **CloudWatch** (região sa-east-1), grupo de log **/ecs/sigeo-api**, veja os logs da tarefa ECS. O erro real (ex.: coluna inexistente, constraint) aparece lá.
+2. **Schema do banco:** Em produção a API usa `synchronize: false`. Se o RDS foi criado sem rodar o bootstrap, as tabelas podem estar faltando ou desatualizadas. Rode o bootstrap **uma vez** com as variáveis do RDS:
+   ```powershell
+   cd apps/api
+   $env:DB_HOST="sigeo-db.xxx.sa-east-1.rds.amazonaws.com"
+   $env:DB_USER="postgres"
+   $env:DB_NAME="sigeo"
+   $env:DB_PASSWORD="<senha do RDS>"  # ou use o valor do SSM /sigeo/db-password
+   pnpm db:bootstrap
+   ```
+   Isso sincroniza o schema (todas as entidades) e cria o usuário admin se não existir.
