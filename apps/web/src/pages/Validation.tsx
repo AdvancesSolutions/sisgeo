@@ -42,7 +42,8 @@ export function Validation() {
   };
 
   useEffect(() => {
-    fetchQueue();
+    const id = setTimeout(() => fetchQueue(), 0);
+    return () => clearTimeout(id);
   }, []);
 
   const handleApprove = async (id: string) => {
