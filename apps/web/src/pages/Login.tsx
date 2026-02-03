@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function Login() {
@@ -8,10 +8,24 @@ export function Login() {
   const [error, setError] = useState('');
   const { user, login, isLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (user) navigate('/dashboard', { replace: true });
   }, [user, navigate]);
+
+  // Mensagem "Sessão expirada" quando redirecionado após falha de refresh
+  useEffect(() => {
+    const fromSessionExpired = searchParams.get('sessionExpired') === '1' || sessionStorage.getItem('sessionExpired') === '1';
+    if (fromSessionExpired) {
+      setError('Sessão expirada. Faça login novamente.');
+      try {
+        sessionStorage.removeItem('sessionExpired');
+      } catch {
+        // ignorar
+      }
+    }
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

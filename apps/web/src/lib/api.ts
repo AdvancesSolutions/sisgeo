@@ -1,10 +1,10 @@
-import axios from 'axios';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
+import { authStore } from '@/auth/authStore';
 
-// Em produção (Amplify) defina VITE_API_URL nas variáveis de ambiente do app (URL HTTPS, ex.: CloudFront).
+// Em produção (Amplify) defina VITE_API_URL nas variáveis de ambiente (ex.: https://dapotha14ic3h.cloudfront.net).
 let baseURL =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.DEV ? '/api' : undefined);
-// Evita Mixed Content: se a página é HTTPS, a API também deve ser HTTPS.
 if (typeof window !== 'undefined' && window.location?.protocol === 'https:' && baseURL?.startsWith('http://')) {
   baseURL = baseURL.replace(/^http:\/\//i, 'https://');
 }
@@ -14,56 +14,86 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Garante que a URL absoluta do refresh use o mesmo base da API (evita 404 em produção).
 function getRefreshUrl(): string {
   const b = baseURL || '';
   if (b) return b.replace(/\/$/, '') + '/auth/refresh';
   return '/auth/refresh';
 }
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  const isAuthRoute = typeof config.url === 'string' && (config.url.includes('/auth/login') || config.url.includes('/auth/refresh'));
-  if (!token && !isAuthRoute) {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
-    return new Promise(() => {}); // evita erro na UI; a página redireciona
+function isAuthRoute(url: unknown): boolean {
+  if (typeof url !== 'string') return false;
+  return url.includes('/auth/login') || url.includes('/auth/refresh');
+}
+
+// Anexa Authorization quando houver token. Sem token em rota não-auth rejeita (evita tempestade de requests sem sessão); ProtectedRoute já redireciona para /login.
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = authStore.getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (!token && !isAuthRoute(config.url)) {
+    return Promise.reject(new Error('NO_AUTH'));
+  }
   return config;
 });
 
-// Uma única renovação por vez: evita várias chamadas a /auth/refresh quando várias requisições retornam 401 juntas.
+// Refresh lock: uma única renovação por vez; requisições 401 aguardam e são refeitas com o novo token.
 let refreshPromise: Promise<string | null> | null = null;
 
 function doRefresh(): Promise<string | null> {
-  const refresh = localStorage.getItem('refreshToken');
+  const refresh = authStore.getRefreshToken();
   if (!refresh) return Promise.resolve(null);
   const url = getRefreshUrl();
   return axios
-    .post<{ accessToken: string; refreshToken?: string }>(url, { refreshToken: refresh }, {
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 10000,
-    })
+    .post<{ accessToken: string; refreshToken?: string }>(
+      url,
+      { refreshToken: refresh },
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 10000,
+      },
+    )
     .then(({ data }) => {
-      localStorage.setItem('accessToken', data.accessToken);
-      if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+      authStore.setTokens({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken ?? refresh,
+      });
       return data.accessToken;
     })
     .catch(() => null);
 }
 
+/** Chamado quando refresh falha: limpa sessão e redireciona com mensagem "Sessão expirada". */
+function onSessionExpired(): void {
+  authStore.clear();
+  try {
+    sessionStorage.setItem('sessionExpired', '1');
+  } catch {
+    // ignorar
+  }
+  window.location.href = '/login?sessionExpired=1';
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean };
+
 api.interceptors.response.use(
   (r) => r,
   async (err) => {
-    const orig = err.config;
-    if (err.response?.status !== 401 || orig._retry) return Promise.reject(err);
+    const orig: RetryConfig = err.config;
+    if (err.response?.status !== 401 || orig._retry) {
+      return Promise.reject(err);
+    }
+
+    if (isAuthRoute(orig.url)) {
+      return Promise.reject(err);
+    }
 
     orig._retry = true;
 
-    if (!refreshPromise) refreshPromise = doRefresh();
+    if (!refreshPromise) {
+      refreshPromise = doRefresh();
+    }
     const newToken = await refreshPromise;
     refreshPromise = null;
 
@@ -72,14 +102,10 @@ api.interceptors.response.use(
       return api(orig);
     }
 
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
-    // Marca o erro para a UI exibir "Sessão expirada" em vez de "Request failed with status code 401".
+    onSessionExpired();
     const authErr = Object.assign(err, { __authRedirect: true } as { __authRedirect?: boolean });
     return Promise.reject(authErr);
-  }
+  },
 );
 
 export default api;

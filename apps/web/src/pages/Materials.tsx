@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/getApiErrorMessage';
 import type { Material } from '@sigeo/shared';
 
 type MaterialFormState = {
@@ -23,13 +24,8 @@ export function Materials() {
       const res = await api.get<{ data: Material[] }>('/materials');
       setMaterials(res.data.data ?? []);
     } catch (e: unknown) {
-      const err = e as { __authRedirect?: boolean; response?: { status?: number }; message?: string };
-      if (err?.__authRedirect || err?.response?.status === 401) {
-        setSuccess(null);
-        setError('Sessão expirada. Faça login novamente.');
-      } else {
-        setError(e instanceof Error ? (e as Error).message : 'Erro ao carregar materiais.');
-      }
+      setSuccess(null);
+      setError(getApiErrorMessage(e, 'Erro ao carregar materiais'));
     } finally {
       setLoading(false);
     }
@@ -63,14 +59,7 @@ export function Materials() {
       setSuccess('Material cadastrado.');
       await load();
     } catch (e: unknown) {
-      let msg = 'Erro ao salvar.';
-      if (e && typeof e === 'object' && 'response' in e) {
-        const res = (e as { response?: { data?: { message?: string }; status?: number } }).response;
-        msg = res?.data?.message ?? (res?.status === 401 ? 'Faça login novamente.' : `Erro ${res?.status ?? 'rede'}.`);
-      } else if (e instanceof Error) {
-        msg = e.message;
-      }
-      setError(msg);
+      setError(getApiErrorMessage(e, 'Erro ao salvar material'));
       setSuccess(null);
     } finally {
       setSaving(false);

@@ -11,6 +11,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import api from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/getApiErrorMessage';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface TaskPhoto {
@@ -76,12 +77,13 @@ export function TaskDetail() {
   const handleApprove = async () => {
     if (!id) return;
     setActionLoading(true);
+    setError(null);
     try {
       await api.post(`/tasks/${id}/approve`);
       setShowApproveModal(false);
       setTask((t) => (t ? { ...t, status: 'DONE' } : null));
-    } catch {
-      setError('Falha ao aprovar');
+    } catch (e) {
+      setError(getApiErrorMessage(e, 'Falha ao aprovar'));
     } finally {
       setActionLoading(false);
     }
@@ -90,6 +92,7 @@ export function TaskDetail() {
   const handleReject = async () => {
     if (!id || !rejectComment.trim()) return;
     setActionLoading(true);
+    setError(null);
     try {
       const { data } = await api.post(`/tasks/${id}/reject`, {
         comment: rejectComment.trim(),
@@ -99,8 +102,8 @@ export function TaskDetail() {
       setRejectComment('');
       setRejectReason('');
       setTask(data);
-    } catch {
-      setError('Falha ao recusar');
+    } catch (e) {
+      setError(getApiErrorMessage(e, 'Falha ao recusar'));
     } finally {
       setActionLoading(false);
     }

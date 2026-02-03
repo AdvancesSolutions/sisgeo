@@ -9,6 +9,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import api from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/getApiErrorMessage';
 
 interface TaskPhoto {
   id: string;
@@ -47,22 +48,24 @@ export function Validation() {
   }, []);
 
   const handleApprove = async (id: string) => {
+    setError(null);
     try {
       await api.post(`/tasks/${id}/approve`);
       setTasks((prev) => prev.filter((t) => t.id !== id));
-    } catch {
-      setError('Falha ao aprovar');
+    } catch (e) {
+      setError(getApiErrorMessage(e, 'Falha ao aprovar'));
     }
   };
 
   const handleReject = async (id: string) => {
     const comment = window.prompt('Comentário obrigatório na recusa:');
     if (comment == null || !comment.trim()) return;
+    setError(null);
     try {
       await api.post(`/tasks/${id}/reject`, { comment: comment.trim() });
       setTasks((prev) => prev.filter((t) => t.id !== id));
-    } catch {
-      setError('Falha ao recusar');
+    } catch (e) {
+      setError(getApiErrorMessage(e, 'Falha ao recusar'));
     }
   };
 
