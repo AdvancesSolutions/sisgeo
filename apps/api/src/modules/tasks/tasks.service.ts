@@ -4,9 +4,15 @@ import { In, Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { Task } from '../../entities/task.entity';
 import { TaskPhoto } from '../../entities/task-photo.entity';
+import { Area } from '../../entities/area.entity';
+import { Employee } from '../../entities/employee.entity';
 import { taskSchema, taskUpdateSchema, rejectTaskSchema } from '@sigeo/shared';
 import type { TaskInput, TaskUpdateInput, RejectTaskInput } from '@sigeo/shared';
 import { AuditService } from '../audit/audit.service';
+
+/** Mínimo de fotos por tipo para enviar tarefa para validação (IN_REVIEW). Regra T5/F4. */
+const MIN_PHOTOS_BEFORE = 1;
+const MIN_PHOTOS_AFTER = 1;
 
 @Injectable()
 export class TasksService {
@@ -15,13 +21,38 @@ export class TasksService {
     private readonly repo: Repository<Task>,
     @InjectRepository(TaskPhoto)
     private readonly photoRepo: Repository<TaskPhoto>,
+    @InjectRepository(Area)
+    private readonly areaRepo: Repository<Area>,
+    @InjectRepository(Employee)
+    private readonly employeeRepo: Repository<Employee>,
     private readonly audit: AuditService,
   ) {}
 
   async create(dto: TaskInput): Promise<Task> {
     const data = taskSchema.parse(dto);
+    await this.validateAreaExists(data.areaId);
+    if (data.employeeId) await this.validateEmployeeActive(data.employeeId);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (data.scheduledDate < today) {
+      throw new BadRequestException('Data agendada não pode ser no passado');
+    }
     const e = this.repo.create({ id: uuid(), ...data });
     return this.repo.save(e);
+  }
+
+  private async validateAreaExists(areaId: string): Promise<void> {
+    const area = await this.areaRepo.findOne({ where: { id: areaId } });
+    if (!area) throw new BadRequestException('Área não encontrada');
+  }
+
+  /** Regra T7: funcionário atribuído à tarefa deve existir e estar ACTIVE. */
+  private async validateEmployeeActive(employeeId: string): Promise<void> {
+    const emp = await this.employeeRepo.findOne({ where: { id: employeeId } });
+    if (!emp) throw new BadRequestException('Funcionário não encontrado');
+    if (emp.status !== 'ACTIVE') {
+      throw new BadRequestException('Só é possível atribuir tarefa a funcionário com status ACTIVE');
+    }
   }
 
   async findAll(
@@ -55,7 +86,10 @@ export class TasksService {
   }
 
   async addPhoto(taskId: string, type: string, url: string, key: string): Promise<TaskPhoto> {
-    await this.findOne(taskId);
+    const task = await this.findOne(taskId);
+    if (task.status !== 'PENDING' && task.status !== 'IN_PROGRESS') {
+      throw new BadRequestException('Só é possível adicionar foto em tarefa com status PENDING ou IN_PROGRESS');
+    }
     const e = this.photoRepo.create({ id: uuid(), taskId, type, url, key });
     return this.photoRepo.save(e);
   }
@@ -109,15 +143,46 @@ export class TasksService {
     return this.findOne(id);
   }
 
-  async update(id: string, dto: TaskUpdateInput): Promise<Task> {
+  async update(id: string, dto: TaskUpdateInput, userId?: string): Promise<Task> {
     const data = taskUpdateSchema.parse(dto);
-    await this.findOne(id);
+    const task = await this.findOne(id);
+    if (data.areaId !== undefined) await this.validateAreaExists(data.areaId);
+    if (data.employeeId) await this.validateEmployeeActive(data.employeeId);
+    if (data.status === 'IN_REVIEW') {
+      if (task.status !== 'PENDING' && task.status !== 'IN_PROGRESS') {
+        throw new BadRequestException('Só tarefas com status PENDING ou IN_PROGRESS podem ser enviadas para validação');
+      }
+      await this.validateMinPhotosForReview(id);
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (data.scheduledDate !== undefined && data.scheduledDate < today) {
+      throw new BadRequestException('Data agendada não pode ser no passado');
+    }
+    if (data.status !== undefined && data.status !== task.status && userId) {
+      await this.audit.log(userId, 'UPDATE', 'Task', id, { previousStatus: task.status, newStatus: data.status });
+    }
     await this.repo.update(id, data as Partial<Task>);
     return this.findOne(id);
   }
 
-  async remove(id: string): Promise<void> {
-    await this.findOne(id);
+  private async validateMinPhotosForReview(taskId: string): Promise<void> {
+    const photos = await this.photoRepo.find({ where: { taskId } });
+    const before = photos.filter((p) => p.type === 'BEFORE').length;
+    const after = photos.filter((p) => p.type === 'AFTER').length;
+    if (before < MIN_PHOTOS_BEFORE || after < MIN_PHOTOS_AFTER) {
+      throw new BadRequestException(
+        `Para enviar à validação é necessário pelo menos ${MIN_PHOTOS_BEFORE} foto(s) ANTES e ${MIN_PHOTOS_AFTER} foto(s) DEPOIS`,
+      );
+    }
+  }
+
+  async remove(id: string, userId?: string): Promise<void> {
+    const task = await this.findOne(id);
+    if (task.status === 'DONE') {
+      throw new BadRequestException('Não é permitido excluir tarefa já concluída (DONE)');
+    }
+    if (userId) await this.audit.log(userId, 'DELETE', 'Task', id, { status: task.status });
     await this.repo.delete(id);
   }
 }

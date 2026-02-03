@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { Area } from '../../entities/area.entity';
+import { Location } from '../../entities/location.entity';
 import { areaSchema, areaUpdateSchema } from '@sigeo/shared';
 import type { AreaInput, AreaUpdateInput } from '@sigeo/shared';
 
@@ -11,10 +12,18 @@ export class AreasService {
   constructor(
     @InjectRepository(Area)
     private readonly repo: Repository<Area>,
+    @InjectRepository(Location)
+    private readonly locationRepo: Repository<Location>,
   ) {}
+
+  private async validateLocationExists(locationId: string): Promise<void> {
+    const loc = await this.locationRepo.findOne({ where: { id: locationId } });
+    if (!loc) throw new BadRequestException('Local não encontrado');
+  }
 
   async create(dto: AreaInput): Promise<Area> {
     const data = areaSchema.parse(dto);
+    await this.validateLocationExists(data.locationId);
     const e = this.repo.create({ id: uuid(), ...data });
     return this.repo.save(e);
   }

@@ -15,6 +15,7 @@ import { Materials } from '@/pages/Materials';
 import { TimeClock } from '@/pages/TimeClock';
 import { Reports } from '@/pages/Reports';
 import { Audit } from '@/pages/Audit';
+import { AuthDebug } from '@/pages/AuthDebug';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           >
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="auth-debug" element={<AuthDebug />} />
             <Route path="employees" element={<AdminOnly><Employees /></AdminOnly>} />
             <Route path="locations" element={<AdminOnly><Locations /></AdminOnly>} />
             <Route path="areas" element={<AdminOnly><Areas /></AdminOnly>} />

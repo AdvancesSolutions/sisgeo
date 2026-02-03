@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
@@ -38,6 +38,9 @@ export class MaterialsService {
   async update(id: string, dto: MaterialUpdateInput): Promise<Material> {
     const data = materialUpdateSchema.parse(dto);
     await this.findOne(id);
+    if (data.stock !== undefined && data.stock < 0) {
+      throw new BadRequestException('Estoque não pode ser negativo');
+    }
     await this.repo.update(id, data as Partial<Material>);
     return this.findOne(id);
   }

@@ -46,6 +46,7 @@ Depois disso, o DNS de **advances.com.br** passa a ser resolvido pela AWS. Todos
    - **Record type:** CNAME (ou o que a Amplify indicar)
    - **Value:** o alvo que a Amplify mostrar (ex.: `main.da1hucc7ed5a9.amplifyapp.com`)
 5. Aguarde o status do domínio na Amplify ficar **Available**. Acesse **https://sigeo.advances.com.br**.
+6. **Rewrite SPA (obrigatório):** Para que **atualizar a página** em rotas como `/locations/`, `/dashboard/` etc. não retorne 404, o app precisa da regra de rewrite. No Console: **Hosting** → **Rewrites and redirects** → **Manage redirects** → cole o conteúdo de `scripts/amplify-custom-rules.json` (regra `/<<*>>` → `/index.html`, status 200). Ou rode: `.\scripts\amplify-spa-redirect.ps1 -AwsRegion sa-east-1`.
 
 ---
 

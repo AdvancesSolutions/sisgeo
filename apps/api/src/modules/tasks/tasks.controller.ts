@@ -70,8 +70,9 @@ export class TasksController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: unknown,
+    @CurrentUser('sub') userId?: string,
   ) {
-    return this.service.update(id, body as TaskUpdateInput);
+    return this.service.update(id, body as TaskUpdateInput, userId);
   }
 
   @Post(':id/approve')
@@ -98,7 +99,7 @@ export class TasksController {
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Remover tarefa' })
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
-    await this.service.remove(id);
+  async remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser('sub') userId?: string) {
+    await this.service.remove(id, userId);
   }
 }
