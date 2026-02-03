@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  LayoutDashboard,
   Users,
   ClipboardList,
   Package,
@@ -39,38 +38,61 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <LayoutDashboard className="w-6 h-6 text-slate-700" />
-        <h1 className="text-xl font-bold text-slate-800">Dashboard</h1>
+    <div className="space-y-6 max-w-6xl mx-auto">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--foreground)' }}>
+          Dashboard
+        </h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)' }}>
+          Olá, {user?.name ?? 'Usuário'}. Resumo do sistema.
+        </p>
       </div>
-      <p className="text-slate-600 text-sm">Olá, {user?.name ?? 'Usuário'}. Resumo do sistema.</p>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map(({ label, value, icon: Icon, to }) => (
           <Link
             key={label}
             to={to}
-            className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm hover:border-slate-300 transition-colors block"
+            className="rounded-theme-2xl border p-5 shadow-sm transition-all hover:shadow"
+            style={{
+              backgroundColor: 'var(--card)',
+              borderColor: 'var(--border)',
+            }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-slate-600 text-sm">{label}</span>
-              <Icon className="w-5 h-5 text-slate-400" />
+              <span className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
+                {label}
+              </span>
+              <Icon className="w-5 h-5 opacity-60" style={{ color: 'var(--muted-foreground)' }} />
             </div>
-            <p className="text-2xl font-bold text-slate-800 mt-1">{value}</p>
-            <span className="text-xs text-sky-600 flex items-center gap-0.5 mt-2">
+            <p className="text-2xl font-bold mt-2" style={{ color: 'var(--foreground)' }}>
+              {value}
+            </p>
+            <span
+              className="text-xs font-medium flex items-center gap-1 mt-3"
+              style={{ color: 'var(--primary)' }}
+            >
               Ver <ArrowRight className="w-3 h-3" />
             </span>
           </Link>
         ))}
       </div>
+
       {user?.role === 'ADMIN' && kpis.inReview > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between">
-          <span className="text-amber-800 font-medium">
+        <div
+          className="rounded-theme-xl border p-4 flex items-center justify-between"
+          style={{
+            backgroundColor: 'hsl(48 96% 53% / 0.12)',
+            borderColor: 'hsl(45 93% 47% / 0.4)',
+          }}
+        >
+          <span className="font-medium" style={{ color: 'hsl(38 92% 25%)' }}>
             {kpis.inReview} tarefa(s) aguardando validação
           </span>
           <Link
             to="/validation"
-            className="text-amber-700 text-sm font-medium hover:underline flex items-center gap-1"
+            className="text-sm font-medium hover:underline flex items-center gap-1"
+            style={{ color: 'hsl(38 92% 35%)' }}
           >
             Validar <ArrowRight className="w-4 h-4" />
           </Link>

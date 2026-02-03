@@ -12,24 +12,35 @@ export function Topbar() {
   };
 
   return (
-    <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 shadow-sm">
-      <div className="text-slate-600 font-medium">SIGEO</div>
-      <div className="flex items-center gap-3">
-        <span className="flex items-center gap-1.5 text-sm text-slate-600">
-          <User className="w-4 h-4 text-slate-400" />
+    <header
+      className="h-14 shrink-0 flex items-center justify-between px-6 border-b border-border bg-card shadow-sm"
+      style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card)' }}
+    >
+      <div className="font-semibold text-foreground" style={{ color: 'var(--foreground)' }}>
+        SIGEO
+      </div>
+      <div className="flex items-center gap-4">
+        <span
+          className="flex items-center gap-2 text-sm"
+          style={{ color: 'var(--muted-foreground)' }}
+        >
+          <User className="w-4 h-4" />
           {user?.name ?? '-'}
         </span>
         <span
-          className={`text-xs px-2 py-0.5 rounded font-medium ${
-            user?.role === 'ADMIN' ? 'bg-sky-100 text-sky-700' : 'bg-slate-100 text-slate-600'
-          }`}
+          className="text-xs px-2.5 py-1 rounded-full font-medium bg-primary text-primary-foreground"
+          style={{
+            backgroundColor: 'var(--primary)',
+            color: 'var(--primary-foreground)',
+          }}
         >
-          {user?.role ?? '-'}
+          {user?.role === 'ADMIN' ? 'Admin' : 'Usuário'}
         </span>
         <button
           type="button"
           onClick={handleLogout}
-          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-600 transition-colors"
+          className="flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80"
+          style={{ color: 'var(--muted-foreground)' }}
         >
           <LogOut className="w-4 h-4" />
           Sair

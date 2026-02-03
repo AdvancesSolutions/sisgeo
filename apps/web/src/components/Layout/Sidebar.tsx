@@ -37,29 +37,44 @@ export function Sidebar() {
   const links = user?.role === 'ADMIN' ? adminLinks : employeeLinks;
 
   return (
-    <aside className="w-56 bg-slate-900 text-slate-200 flex flex-col min-h-screen shrink-0">
-      <div className="p-4 border-b border-slate-700">
-        <h1 className="font-bold text-lg text-white flex items-center gap-2">
-          <LayoutDashboard className="w-5 h-5" />
+    <aside
+      id="sidebar"
+      className="w-60 shrink-0 flex flex-col min-h-screen border-r border-[var(--sidebar-border)] transition-colors"
+      style={{
+        backgroundColor: 'var(--sidebar)',
+        color: 'var(--sidebar-foreground)',
+      }}
+    >
+      {/* Logo */}
+      <div className="p-5 border-b border-[var(--sidebar-border)]">
+        <h1 className="font-semibold text-lg tracking-tight flex items-center gap-2" style={{ color: 'var(--sidebar-primary)' }}>
+          <LayoutDashboard className="w-6 h-6 shrink-0" />
           SIGEO
         </h1>
-        <p className="text-xs text-slate-400 mt-0.5">Gestão Operacional</p>
+        <p className="text-xs mt-1 opacity-70">Gestão Operacional</p>
       </div>
-      <nav className="flex-1 p-2 space-y-0.5">
-        {links.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                isActive ? 'bg-slate-700 text-white' : 'hover:bg-slate-800 text-slate-300'
-              }`
-            }
-          >
-            <Icon className="w-4 h-4 shrink-0" />
-            {label}
-          </NavLink>
-        ))}
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto p-3">
+        <ul className="space-y-0.5">
+          {links.map(({ to, label, icon: Icon }) => (
+            <li key={to}>
+              <NavLink
+                to={to}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
+                      : 'text-[var(--sidebar-foreground)]/90 hover:bg-[var(--sidebar-accent)]/80 hover:text-[var(--sidebar-foreground)]'
+                  }`
+                }
+              >
+                <Icon className="w-5 h-5 shrink-0 opacity-90" />
+                <span className="capitalize">{label}</span>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
       </nav>
     </aside>
   );

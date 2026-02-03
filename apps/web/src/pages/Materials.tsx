@@ -120,7 +120,7 @@ export function Materials() {
         <button
           type="button"
           onClick={() => (editingId ? cancelEdit() : setShowForm(!showForm))}
-          className="inline-flex items-center justify-center rounded-xl px-5 py-2.5 bg-slate-800 text-white text-sm font-medium shadow-sm hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition"
+          className="inline-flex items-center justify-center rounded-theme-lg px-5 py-2.5 bg-primary text-primary-foreground text-sm font-medium shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:ring-offset-2 transition"
         >
           {showForm || editingId ? 'Cancelar' : 'Novo'}
         </button>
@@ -136,7 +136,7 @@ export function Materials() {
       )}
 
       {(showForm || editingId) && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-theme-2xl border border-border bg-card p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-800 mb-4">
             {editingId ? 'Editar material' : 'Novo material'}
           </h2>
@@ -176,7 +176,7 @@ export function Materials() {
               type="button"
               disabled={saving}
               onClick={save}
-              className="inline-flex items-center justify-center rounded-xl px-5 py-2.5 bg-slate-700 text-white text-sm font-medium shadow-sm hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50 transition"
+              className="inline-flex items-center justify-center rounded-theme-lg px-5 py-2.5 bg-primary text-primary-foreground text-sm font-medium shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:ring-offset-2 disabled:opacity-50 transition"
             >
               {saving ? 'Salvando...' : 'Salvar'}
             </button>
@@ -184,7 +184,7 @@ export function Materials() {
         </div>
       )}
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-theme-2xl border border-border bg-card shadow-sm overflow-hidden">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-100/80">
@@ -215,7 +215,7 @@ export function Materials() {
                       <button
                         type="button"
                         onClick={() => startEdit(r)}
-                        className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium bg-slate-700 text-white shadow-sm hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition"
+                        className="inline-flex items-center justify-center rounded-theme px-3 py-2 text-sm font-medium bg-primary text-primary-foreground shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:ring-offset-2 transition"
                       >
                         Editar
                       </button>
