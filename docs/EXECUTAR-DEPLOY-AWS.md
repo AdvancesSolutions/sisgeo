@@ -1,5 +1,18 @@
 # Executar o deploy AWS agora
 
+## Migração: employee_id em users (Acessos dos Funcionários)
+
+Após deploy da API, execute no banco de produção:
+
+```sql
+ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id uuid NULL;
+CREATE INDEX IF NOT EXISTS idx_users_employee_id ON users(employee_id);
+```
+
+Ou via psql: `psql -h <RDS_HOST> -U postgres -d sigeo -f apps/api/src/db/migrations/add-user-employee-id.sql`
+
+---
+
 Siga **nesta ordem**. O que já foi feito: Git init, build da imagem Docker da API, script `deploy-aws.ps1`.
 
 ---
