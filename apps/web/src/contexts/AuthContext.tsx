@@ -42,8 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsVerifying(false);
       })
       .catch((err) => {
-        // 401 é esperado quando o token expirou ou é inválido; limpa sem logar erro.
-        if (err?.response?.status === 401) {
+        const status = err?.response?.status;
+        // 401 = token expirado/inválido. 500 = API de produção pode devolver 500 com token inválido; trata como sessão inválida.
+        if (status === 401 || status === 500) {
           authStore.clear();
           setUser(null);
         }

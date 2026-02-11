@@ -19,6 +19,7 @@ import DashboardActions from "@/pages/dashboard/sections/DashboardActions";
 import DashboardStats from "@/pages/dashboard/sections/DashboardStats";
 import DashboardRecentTasks from "@/pages/dashboard/sections/DashboardRecentTasks";
 import DashboardActivity from "@/pages/dashboard/sections/DashboardActivity";
+import DashboardAreasWithoutActivity from "@/pages/dashboard/sections/DashboardAreasWithoutActivity";
 import DashboardSales from "@/pages/dashboard/sections/DashboardSales";
 import DashboardVisits from "@/pages/dashboard/sections/DashboardVisits";
 
@@ -114,6 +115,9 @@ export function Dashboard() {
         </Grid>
         <Grid size={{ lg: 4, xs: 12 }}>
           <DashboardActivity />
+          <div className="mt-5">
+            <DashboardAreasWithoutActivity startDate={startDate} endDate={endDate} />
+          </div>
         </Grid>
       </Grid>
 

@@ -11,6 +11,7 @@ import { Login } from "@/pages/Login";
 import { Tasks } from "@/pages/Tasks";
 import { TaskDetail } from "@/pages/TaskDetail";
 import { Employees } from "@/pages/Employees";
+import { EmployeeAccess } from "@/pages/EmployeeAccess";
 import { Locations } from "@/pages/Locations";
 import { Areas } from "@/pages/Areas";
 import { Validation } from "@/pages/Validation";
@@ -34,6 +35,7 @@ function generateRoutesFromMenuItems(menuItems: MenuItem[]): React.ReactElement[
     else if (path === "painel-controle") routes.push(<Route key={item.id} path={path} element={<AdminOnly><PainelControle /></AdminOnly>} />);
     else if (path === "tasks") routes.push(<Route key={item.id} path={path} element={<Tasks />} />);
     else if (path === "employees") routes.push(<Route key={item.id} path={path} element={<AdminOnly><Employees /></AdminOnly>} />);
+    else if (path === "employee-access") routes.push(<Route key={item.id} path={path} element={<AdminOnly><EmployeeAccess /></AdminOnly>} />);
     else if (path === "locations") routes.push(<Route key={item.id} path={path} element={<AdminOnly><Locations /></AdminOnly>} />);
     else if (path === "areas") routes.push(<Route key={item.id} path={path} element={<AdminOnly><Areas /></AdminOnly>} />);
     else if (path === "validation") routes.push(<Route key={item.id} path={path} element={<AdminOnly><Validation /></AdminOnly>} />);

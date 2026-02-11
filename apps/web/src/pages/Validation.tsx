@@ -14,6 +14,7 @@ import { DataGrid } from "@mui/x-data-grid";
 
 import NiCheckSquare from "@/icons/nexture/ni-check-square";
 import NiChevronRightSmall from "@/icons/nexture/ni-chevron-right-small";
+import { dataGridLocalePtBR } from "@/lib/data-grid-locale";
 import NiCrossSquare from "@/icons/nexture/ni-cross-square";
 import NiExclamationSquare from "@/icons/nexture/ni-exclamation-square";
 import api from "@/lib/api";
@@ -124,7 +125,9 @@ export function Validation() {
               <DataGrid
                 rows={tasks}
                 columns={validationColumns(handleApprove, handleReject)}
-                hideFooter
+                localeText={dataGridLocalePtBR}
+                initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
+                pageSizeOptions={[10, 25, 50]}
                 disableColumnFilter
                 disableColumnSelector
                 disableDensitySelector

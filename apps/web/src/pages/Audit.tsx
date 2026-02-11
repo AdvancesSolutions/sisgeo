@@ -34,7 +34,8 @@ export function Audit() {
               rows={MOCK_ROWS}
               columns={auditColumns}
               localeText={dataGridLocalePtBR}
-              hideFooter
+              initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
+              pageSizeOptions={[10, 25, 50]}
               disableColumnFilter
               disableColumnSelector
               disableDensitySelector

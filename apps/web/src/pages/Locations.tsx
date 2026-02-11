@@ -6,6 +6,10 @@ import {
   Button,
   Card,
   CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   TextField,
   Typography,
 } from "@mui/material";
@@ -16,6 +20,7 @@ import NiArrowDown from "@/icons/nexture/ni-arrow-down";
 import NiArrowUp from "@/icons/nexture/ni-arrow-up";
 import NiCross from "@/icons/nexture/ni-cross";
 import NiPlus from "@/icons/nexture/ni-plus";
+import { dataGridLocalePtBR } from "@/lib/data-grid-locale";
 import api from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/getApiErrorMessage";
 import type { Location } from "@sigeo/shared";
@@ -64,11 +69,9 @@ export function Locations() {
         setSuccess("Unidade atualizada.");
       } else {
         await api.post("/locations", payload);
-        setForm(emptyForm);
-        setShowForm(false);
         setSuccess("Unidade criada.");
       }
-      setEditingId(null);
+      closeModal();
       await load();
     } catch (e: unknown) {
       setError(getApiErrorMessage(e, "Erro ao salvar unidade"));
@@ -81,10 +84,16 @@ export function Locations() {
   const startEdit = (loc: Location) => {
     setEditingId(loc.id);
     setForm({ name: loc.name, address: loc.address });
-    setShowForm(false);
+    setShowForm(true);
   };
 
-  const cancelEdit = () => {
+  const openNew = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setShowForm(true);
+  };
+
+  const closeModal = () => {
     setEditingId(null);
     setForm(emptyForm);
     setShowForm(false);
@@ -125,9 +134,9 @@ export function Locations() {
           color="primary"
           size="medium"
           startIcon={<NiPlus size="medium" />}
-          onClick={() => (editingId ? cancelEdit() : setShowForm(!showForm))}
+          onClick={openNew}
         >
-          {showForm || editingId ? "Cancelar" : "Novo"}
+          Novo
         </Button>
       </Box>
 
@@ -142,43 +151,45 @@ export function Locations() {
         </Alert>
       )}
 
-      {(showForm || editingId) && (
-        <Card className="mb-4">
-          <CardContent>
-            <Typography variant="subtitle1" className="mb-3 font-semibold text-text-primary">
-              {editingId ? "Editar local" : "Novo local"}
-            </Typography>
-            <Box
-              component="form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                save();
-              }}
-              className="flex flex-wrap gap-4"
-            >
-              <TextField
-                label="Nome"
-                size="small"
-                required
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="min-w-48"
-              />
-              <TextField
-                label="Endereço"
-                size="small"
-                required
-                value={form.address}
-                onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-                className="min-w-64"
-              />
-              <Button type="submit" variant="contained" color="primary" disabled={saving}>
-                {saving ? "Salvando…" : "Salvar"}
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
-      )}
+      <Dialog open={showForm} onClose={closeModal} maxWidth="sm" fullWidth>
+        <DialogTitle className="border-grey-100 border-b py-4">
+          {editingId ? "Editar local" : "Novo local"}
+        </DialogTitle>
+        <Box
+          component="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            save();
+          }}
+        >
+          <DialogContent className="flex flex-col gap-4 pt-6">
+            <TextField
+              label="Nome"
+              size="small"
+              required
+              fullWidth
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            />
+            <TextField
+              label="Endereço"
+              size="small"
+              required
+              fullWidth
+              value={form.address}
+              onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+            />
+          </DialogContent>
+          <DialogActions className="gap-2 px-6 pb-4">
+            <Button variant="outlined" onClick={closeModal}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="contained" color="primary" disabled={saving}>
+              {saving ? "Salvando…" : "Salvar"}
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
 
       <Card>
         <CardContent className="p-0">
@@ -186,8 +197,9 @@ export function Locations() {
             <DataGrid
               rows={locations}
               columns={locationColumns(startEdit, handleDelete)}
-              hideFooter={locations.length <= 100}
-              pageSizeOptions={[10, 25, 50]}
+              localeText={dataGridLocalePtBR}
+              initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
+              pageSizeOptions={[10, 25, 50, 100]}
               disableColumnFilter
               disableColumnSelector
               disableDensitySelector
@@ -230,7 +242,11 @@ function locationColumns(
       renderCell: (params: GridRenderCellParams<Location, string>) => {
         const loc = params.row;
         return (
-          <Box className="flex gap-2">
+          <Box
+          className="flex gap-2"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
             <Button size="small" variant="contained" color="primary" onClick={() => startEdit(loc)}>
               Editar
             </Button>

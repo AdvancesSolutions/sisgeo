@@ -15,6 +15,7 @@ import { MaterialsModule } from './modules/materials/materials.module';
 import { TimeClockModule } from './modules/time-clock/time-clock.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { HealthModule } from './modules/health/health.module';
+import { EmployeeAccessModule } from './modules/employee-access/employee-access.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { HealthModule } from './modules/health/health.module';
     TimeClockModule,
     UploadModule,
     HealthModule,
+    EmployeeAccessModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

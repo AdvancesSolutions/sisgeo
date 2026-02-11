@@ -25,6 +25,7 @@ import NiChevronRightSmall from "@/icons/nexture/ni-chevron-right-small";
 import NiExclamationSquare from "@/icons/nexture/ni-exclamation-square";
 import NiPlus from "@/icons/nexture/ni-plus";
 import NiPlusSquare from "@/icons/nexture/ni-plus-square";
+import { dataGridLocalePtBR } from "@/lib/data-grid-locale";
 import api from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/getApiErrorMessage";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +35,7 @@ type TaskFormState = {
   areaId: string;
   employeeId: string;
   scheduledDate: string;
+  scheduledTime: string;
   title: string;
 };
 
@@ -59,6 +61,7 @@ export function Tasks() {
     areaId: "",
     employeeId: "",
     scheduledDate: "",
+    scheduledTime: "",
     title: "",
   });
 
@@ -70,10 +73,11 @@ export function Tasks() {
         api.get<{ data: Area[] }>("/areas"),
         api.get<{ data: Employee[] }>("/employees"),
       ]);
-      const a = areasRes.data.data ?? [];
+      const a = (areasRes.data.data ?? []).slice().sort((x, y) => x.name.localeCompare(y.name, "pt-BR"));
+      const emps = (empsRes.data.data ?? []).slice().sort((x, y) => x.name.localeCompare(y.name, "pt-BR"));
       setTasks(tasksRes.data.data ?? []);
       setAreas(a);
-      setEmployees(empsRes.data.data ?? []);
+      setEmployees(emps);
       if (a.length > 0 && !form.areaId) {
         setForm((f) => ({ ...f, areaId: a[0].id }));
       }
@@ -102,9 +106,10 @@ export function Tasks() {
         areaId: form.areaId,
         employeeId: form.employeeId || undefined,
         scheduledDate: form.scheduledDate,
+        scheduledTime: form.scheduledTime || undefined,
         title: form.title || undefined,
       });
-      setForm((f) => ({ ...f, scheduledDate: "", title: "" }));
+      setForm((f) => ({ ...f, scheduledDate: "", scheduledTime: "", title: "" }));
       setShowForm(false);
       setSuccess("Tarefa cadastrada.");
       await load();
@@ -214,6 +219,15 @@ export function Tasks() {
                 className="min-w-40"
               />
               <TextField
+                type="time"
+                label="Horário (opcional)"
+                size="small"
+                value={form.scheduledTime}
+                onChange={(e) => setForm((f) => ({ ...f, scheduledTime: e.target.value }))}
+                InputLabelProps={{ shrink: true }}
+                className="min-w-32"
+              />
+              <TextField
                 label="Título (opcional)"
                 size="small"
                 value={form.title}
@@ -239,8 +253,9 @@ export function Tasks() {
             <DataGrid
               rows={tasks}
               columns={taskColumns}
-              hideFooter={tasks.length <= 100}
-              pageSizeOptions={[10, 25, 50]}
+              localeText={dataGridLocalePtBR}
+              initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
+              pageSizeOptions={[10, 25, 50, 100]}
               disableColumnFilter
               disableColumnSelector
               disableDensitySelector
@@ -290,6 +305,14 @@ const taskColumns: GridColDef<Task>[] = [
       valueGetter: (value) => (value ? new Date(value) : null),
       valueFormatter: (value) =>
         value ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(value)) : "",
+    },
+    {
+      field: "scheduledTime",
+      headerName: "Horário",
+      width: 90,
+      valueGetter: (value: string | null | undefined) => value ?? "",
+      valueFormatter: (value: string | null | undefined) =>
+        value != null ? String(value).slice(0, 5) : "",
     },
     {
       field: "status",

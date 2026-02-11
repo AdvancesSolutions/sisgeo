@@ -6,6 +6,10 @@ import {
   Button,
   Card,
   CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   InputLabel,
   MenuItem,
@@ -21,6 +25,7 @@ import NiArrowUp from "@/icons/nexture/ni-arrow-up";
 import NiChevronDownSmall from "@/icons/nexture/ni-chevron-down-small";
 import NiCross from "@/icons/nexture/ni-cross";
 import NiPlus from "@/icons/nexture/ni-plus";
+import { dataGridLocalePtBR } from "@/lib/data-grid-locale";
 import api from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/getApiErrorMessage";
 import type { Area, Location } from "@sigeo/shared";
@@ -84,11 +89,9 @@ export function Areas() {
           locationId: form.locationId,
           name: form.name.trim(),
         });
-        setForm((f) => ({ ...emptyForm, locationId: f.locationId }));
-        setShowForm(false);
         setSuccess("Área cadastrada.");
       }
-      setEditingId(null);
+      closeModal();
       await load();
     } catch (e: unknown) {
       setError(getApiErrorMessage(e, "Erro ao salvar área"));
@@ -101,10 +104,16 @@ export function Areas() {
   const startEdit = (area: Area) => {
     setEditingId(area.id);
     setForm({ locationId: area.locationId, name: area.name });
-    setShowForm(false);
+    setShowForm(true);
   };
 
-  const cancelEdit = () => {
+  const openNew = () => {
+    setEditingId(null);
+    setForm({ ...emptyForm, locationId: locations[0]?.id ?? "" });
+    setShowForm(true);
+  };
+
+  const closeModal = () => {
     setEditingId(null);
     setForm((f) => ({ ...emptyForm, locationId: f.locationId }));
     setShowForm(false);
@@ -145,9 +154,9 @@ export function Areas() {
           color="primary"
           size="medium"
           startIcon={<NiPlus size="medium" />}
-          onClick={() => (editingId ? cancelEdit() : setShowForm(!showForm))}
+          onClick={openNew}
         >
-          {showForm || editingId ? "Cancelar" : "Nova"}
+          Nova
         </Button>
       </Box>
 
@@ -162,57 +171,59 @@ export function Areas() {
         </Alert>
       )}
 
-      {(showForm || editingId) && (
-        <Card className="mb-4">
-          <CardContent>
-            <Typography variant="subtitle1" className="mb-3 font-semibold text-text-primary">
-              {editingId ? "Editar área" : "Nova área"}
-            </Typography>
-            <Box
-              component="form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                save();
-              }}
-              className="flex flex-wrap gap-4"
+      <Dialog open={showForm} onClose={closeModal} maxWidth="sm" fullWidth>
+        <DialogTitle className="border-grey-100 border-b py-4">
+          {editingId ? "Editar área" : "Nova área"}
+        </DialogTitle>
+        <Box
+          component="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            save();
+          }}
+        >
+          <DialogContent className="flex flex-col gap-4 pt-6">
+            <FormControl
+              variant="outlined"
+              size="small"
+              required={!editingId}
+              disabled={!!editingId}
+              fullWidth
             >
-              <FormControl
-                variant="outlined"
-                size="small"
-                required={!editingId}
-                disabled={!!editingId}
-                className="min-w-48"
+              <InputLabel>Local</InputLabel>
+              <Select
+                value={form.locationId}
+                onChange={(e) => setForm((f) => ({ ...f, locationId: e.target.value }))}
+                label="Local"
+                IconComponent={NiChevronDownSmall}
+                MenuProps={{ className: "outlined" }}
               >
-                <InputLabel>Local</InputLabel>
-                <Select
-                  value={form.locationId}
-                  onChange={(e) => setForm((f) => ({ ...f, locationId: e.target.value }))}
-                  label="Local"
-                  IconComponent={NiChevronDownSmall}
-                  MenuProps={{ className: "outlined" }}
-                >
-                  {locations.map((loc) => (
-                    <MenuItem key={loc.id} value={loc.id}>
-                      {loc.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <TextField
-                label="Nome da área"
-                size="small"
-                required
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="min-w-48"
-              />
-              <Button type="submit" variant="contained" color="primary" disabled={saving}>
-                {saving ? "Salvando…" : "Salvar"}
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
-      )}
+                {locations.map((loc) => (
+                  <MenuItem key={loc.id} value={loc.id}>
+                    {loc.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              label="Nome da área"
+              size="small"
+              required
+              fullWidth
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            />
+          </DialogContent>
+          <DialogActions className="gap-2 px-6 pb-4">
+            <Button variant="outlined" onClick={closeModal}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="contained" color="primary" disabled={saving}>
+              {saving ? "Salvando…" : "Salvar"}
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
 
       <Card>
         <CardContent className="p-0">
@@ -220,8 +231,9 @@ export function Areas() {
             <DataGrid
               rows={areas}
               columns={areaColumns(locations, startEdit, handleDelete)}
-              hideFooter={areas.length <= 100}
-              pageSizeOptions={[10, 25, 50]}
+              localeText={dataGridLocalePtBR}
+              initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
+              pageSizeOptions={[10, 25, 50, 100]}
               disableColumnFilter
               disableColumnSelector
               disableDensitySelector
@@ -270,7 +282,11 @@ function areaColumns(
       renderCell: (params: GridRenderCellParams<Area, string>) => {
         const area = params.row;
         return (
-          <Box className="flex gap-2">
+          <Box
+          className="flex gap-2"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
             <Button size="small" variant="contained" color="primary" onClick={() => startEdit(area)}>
               Editar
             </Button>

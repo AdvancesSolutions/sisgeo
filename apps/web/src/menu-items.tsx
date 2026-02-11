@@ -19,6 +19,7 @@ export const leftMenuItems: MenuItem[] = [
     children: [
       { id: "painel-controle", label: "Painel de Controle", href: "/painel-controle", icon: "NiChartBar" },
       { id: "employees", label: "Funcionários", href: "/employees", icon: "NiUsers" },
+      { id: "employee-access", label: "Acessos dos Funcionários", href: "/employee-access", icon: "NiKey" },
       { id: "locations", label: "Locais", href: "/locations", icon: "NiSigns" },
       { id: "areas", label: "Áreas", href: "/areas", icon: "NiCells" },
       { id: "validation", label: "Validação", href: "/validation", icon: "NiCheckSquare" },

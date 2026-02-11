@@ -3,14 +3,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { Material } from '../../entities/material.entity';
-import { materialSchema, materialUpdateSchema } from '@sigeo/shared';
-import type { MaterialInput, MaterialUpdateInput } from '@sigeo/shared';
+import { MaterialComment } from '../../entities/material-comment.entity';
+import { materialSchema, materialUpdateSchema, materialCommentSchema } from '@sigeo/shared';
+import type { MaterialInput, MaterialUpdateInput, MaterialCommentInput } from '@sigeo/shared';
 
 @Injectable()
 export class MaterialsService {
   constructor(
     @InjectRepository(Material)
     private readonly repo: Repository<Material>,
+    @InjectRepository(MaterialComment)
+    private readonly commentRepo: Repository<MaterialComment>,
   ) {}
 
   async create(dto: MaterialInput): Promise<Material> {
@@ -48,5 +51,36 @@ export class MaterialsService {
   async remove(id: string): Promise<void> {
     await this.findOne(id);
     await this.repo.delete(id);
+  }
+
+  async findCommentsByMaterial(
+    materialId: string,
+  ): Promise<Array<{ id: string; materialId: string; userId: string; body: string; createdAt: Date; userName?: string }>> {
+    await this.findOne(materialId);
+    const comments = await this.commentRepo.find({
+      where: { materialId },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+    return comments.map((c) => ({
+      id: c.id,
+      materialId: c.materialId,
+      userId: c.userId,
+      body: c.body,
+      createdAt: c.createdAt,
+      userName: c.user?.name,
+    }));
+  }
+
+  async addComment(materialId: string, userId: string, dto: MaterialCommentInput): Promise<MaterialComment> {
+    const data = materialCommentSchema.parse(dto);
+    await this.findOne(materialId);
+    const comment = this.commentRepo.create({
+      id: uuid(),
+      materialId,
+      userId,
+      body: data.body,
+    });
+    return this.commentRepo.save(comment);
   }
 }

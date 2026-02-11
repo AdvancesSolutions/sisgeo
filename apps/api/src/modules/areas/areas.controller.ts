@@ -33,6 +33,17 @@ export class AreasController {
     );
   }
 
+  @Get('without-activity')
+  @ApiOperation({ summary: 'Áreas sem nenhuma tarefa no período' })
+  findWithoutActivity(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const fromDate = from ? new Date(from) : new Date(Date.now() - 7 * 24 * 3600 * 1000);
+    const toDate = to ? new Date(to) : new Date();
+    return this.service.findWithoutActivity(fromDate, toDate);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Buscar por ID' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {

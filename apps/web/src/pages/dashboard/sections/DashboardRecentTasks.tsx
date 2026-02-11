@@ -89,7 +89,8 @@ export default function DashboardRecentTasks() {
               rows={rows}
               columns={columns}
               localeText={dataGridLocalePtBR}
-              hideFooter
+              initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+              pageSizeOptions={[5, 10, 15]}
               disableColumnFilter
               disableColumnSelector
               disableDensitySelector

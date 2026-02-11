@@ -80,6 +80,12 @@ export function Login() {
     if (res?.status === 401) {
       return res?.data?.message ?? "E-mail ou senha incorretos.";
     }
+    if (res?.status === 500) {
+      const msg = res?.data?.message;
+      return msg
+        ? `Erro no servidor: ${msg}`
+        : "A API está retornando erro 500. Se estiver usando proxy para produção, verifique se a API está no ar ou use a URL do CloudFront em apps/web/.env.local (PROXY_API_TARGET). Para usar API local: rode pnpm dev:api e remova PROXY_API_TARGET do .env.local.";
+    }
     if (res?.data?.message) return res.data.message;
     const isNetworkError =
       ax?.code === "ERR_NETWORK" ||
@@ -87,7 +93,7 @@ export function Login() {
       ax?.code === "ECONNABORTED" ||
       !res;
     if (isNetworkError && import.meta.env.DEV) {
-      return "API não está acessível. Inicie a API com: pnpm dev:api (porta 3000).";
+      return "API não está acessível. Inicie a API com: pnpm dev:api (porta 3000) ou configure PROXY_API_TARGET em .env.local para usar a API de produção.";
     }
     if (isNetworkError) {
       return "Erro ao conectar. Verifique a rede e tente novamente.";

@@ -47,6 +47,7 @@ export interface Task {
   areaId: string;
   employeeId?: string;
   scheduledDate: Date;
+  scheduledTime?: string | null;
   status: TaskStatus;
   title?: string;
   description?: string;
@@ -84,6 +85,15 @@ export interface Material {
   stock: number;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface MaterialComment {
+  id: string;
+  materialId: string;
+  userId: string;
+  userName?: string;
+  body: string;
+  createdAt: Date;
 }
 
 export type StockMovementType = 'IN' | 'OUT';
