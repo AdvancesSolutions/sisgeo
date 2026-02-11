@@ -1,6 +1,7 @@
 /**
  * URL base da API (HTTPS obrigatório no dispositivo).
- * Definir EXPO_PUBLIC_API_URL em .env.development / .env.production.
+ * Mesma API do painel web em produção (AWS CloudFront).
+ * Definir EXPO_PUBLIC_API_URL em .env.development / .env.production para override.
  */
 const PRODUCTION_API_URL = 'https://dapotha14ic3h.cloudfront.net';
 

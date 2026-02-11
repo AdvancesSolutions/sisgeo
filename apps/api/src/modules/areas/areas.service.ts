@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { Area } from '../../entities/area.entity';
 import { Location } from '../../entities/location.entity';
+import { Task } from '../../entities/task.entity';
 import { areaSchema, areaUpdateSchema } from '@sigeo/shared';
 import type { AreaInput, AreaUpdateInput } from '@sigeo/shared';
 
@@ -14,6 +15,8 @@ export class AreasService {
     private readonly repo: Repository<Area>,
     @InjectRepository(Location)
     private readonly locationRepo: Repository<Location>,
+    @InjectRepository(Task)
+    private readonly taskRepo: Repository<Task>,
   ) {}
 
   private async validateLocationExists(locationId: string): Promise<void> {
@@ -58,5 +61,18 @@ export class AreasService {
   async remove(id: string): Promise<void> {
     await this.findOne(id);
     await this.repo.delete(id);
+  }
+
+  /** Áreas que não tiveram nenhuma tarefa no período (scheduled_date entre from e to). */
+  async findWithoutActivity(from: Date, to: Date): Promise<Area[]> {
+    const tasksInPeriod = await this.taskRepo
+      .createQueryBuilder('t')
+      .select('DISTINCT t.area_id', 'areaId')
+      .where('t.scheduled_date >= :from', { from })
+      .andWhere('t.scheduled_date <= :to', { to })
+      .getRawMany<{ areaId: string }>();
+    const idsWithActivity = new Set(tasksInPeriod.map((r) => r.areaId).filter(Boolean));
+    const allAreas = await this.repo.find({ order: { name: 'ASC' } });
+    return allAreas.filter((a) => !idsWithActivity.has(a.id));
   }
 }

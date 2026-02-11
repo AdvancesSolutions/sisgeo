@@ -6,6 +6,10 @@ import {
   Button,
   Card,
   CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   InputLabel,
   MenuItem,
@@ -21,6 +25,7 @@ import NiArrowUp from "@/icons/nexture/ni-arrow-up";
 import NiChevronDownSmall from "@/icons/nexture/ni-chevron-down-small";
 import NiCross from "@/icons/nexture/ni-cross";
 import NiPlus from "@/icons/nexture/ni-plus";
+import { dataGridLocalePtBR } from "@/lib/data-grid-locale";
 import api from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/getApiErrorMessage";
 import type { Employee, Location } from "@sigeo/shared";
@@ -105,11 +110,9 @@ export function Employees() {
         setSuccess("Funcionário atualizado.");
       } else {
         await api.post("/employees", payload);
-        setForm((f) => ({ ...emptyForm, unitId: f.unitId }));
-        setShowForm(false);
         setSuccess("Funcionário cadastrado.");
       }
-      setEditingId(null);
+      closeModal();
       await load();
     } catch (e: unknown) {
       setError(getApiErrorMessage(e, "Erro ao salvar funcionário"));
@@ -128,10 +131,16 @@ export function Employees() {
       status: emp.status as EmployeeStatus,
       unitId: emp.unitId,
     });
-    setShowForm(false);
+    setShowForm(true);
   };
 
-  const cancelEdit = () => {
+  const openNew = () => {
+    setEditingId(null);
+    setForm((f) => ({ ...emptyForm, unitId: f.unitId }));
+    setShowForm(true);
+  };
+
+  const closeModal = () => {
     setEditingId(null);
     setForm((f) => ({ ...emptyForm, unitId: f.unitId }));
     setShowForm(false);
@@ -172,9 +181,9 @@ export function Employees() {
           color="primary"
           size="medium"
           startIcon={<NiPlus size="medium" />}
-          onClick={() => (editingId ? cancelEdit() : setShowForm(!showForm))}
+          onClick={openNew}
         >
-          {showForm || editingId ? "Cancelar" : "Novo"}
+          Novo
         </Button>
       </Box>
 
@@ -189,73 +198,76 @@ export function Employees() {
         </Alert>
       )}
 
-      {(showForm || editingId) && (
-        <Card className="mb-4">
-          <CardContent>
-            <Typography variant="subtitle1" className="mb-3 font-semibold text-text-primary">
-              {editingId ? "Editar funcionário" : "Novo funcionário"}
-            </Typography>
-            <Box component="form" onSubmit={handleSubmit} className="flex flex-wrap gap-4">
-              <TextField
-                label="Nome"
-                size="small"
-                required
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="min-w-48"
-              />
-              <TextField
-                label="CPF"
-                size="small"
-                value={form.cpf}
-                onChange={(e) => setForm((f) => ({ ...f, cpf: e.target.value }))}
-                className="min-w-40"
-              />
-              <TextField
-                label="Função"
-                size="small"
-                required
-                value={form.role}
-                onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
-                className="min-w-40"
-              />
-              <FormControl variant="outlined" size="small" required className="min-w-48">
-                <InputLabel>Unidade</InputLabel>
-                <Select
-                  value={form.unitId}
-                  onChange={(e) => setForm((f) => ({ ...f, unitId: e.target.value }))}
-                  label="Unidade"
-                  IconComponent={NiChevronDownSmall}
-                  MenuProps={{ className: "outlined" }}
-                >
-                  {locations.map((loc) => (
-                    <MenuItem key={loc.id} value={loc.id}>
-                      {loc.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl variant="outlined" size="small" className="min-w-40">
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={form.status}
-                  onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as EmployeeStatus }))}
-                  label="Status"
-                  IconComponent={NiChevronDownSmall}
-                  MenuProps={{ className: "outlined" }}
-                >
-                  <MenuItem value="ACTIVE">Ativo</MenuItem>
-                  <MenuItem value="INACTIVE">Inativo</MenuItem>
-                  <MenuItem value="ON_LEAVE">Afastado</MenuItem>
-                </Select>
-              </FormControl>
-              <Button type="submit" variant="contained" color="primary" disabled={saving}>
-                {saving ? "Salvando…" : "Salvar"}
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
-      )}
+      <Dialog open={showForm} onClose={closeModal} maxWidth="sm" fullWidth>
+        <DialogTitle className="border-grey-100 border-b py-4">
+          {editingId ? "Editar funcionário" : "Novo funcionário"}
+        </DialogTitle>
+        <Box component="form" onSubmit={handleSubmit}>
+          <DialogContent className="flex flex-col gap-4 pt-6">
+            <TextField
+              label="Nome"
+              size="small"
+              required
+              fullWidth
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            />
+            <TextField
+              label="CPF"
+              size="small"
+              fullWidth
+              value={form.cpf}
+              onChange={(e) => setForm((f) => ({ ...f, cpf: e.target.value }))}
+            />
+            <TextField
+              label="Função"
+              size="small"
+              required
+              fullWidth
+              value={form.role}
+              onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+            />
+            <FormControl variant="outlined" size="small" required fullWidth>
+              <InputLabel>Unidade</InputLabel>
+              <Select
+                value={form.unitId}
+                onChange={(e) => setForm((f) => ({ ...f, unitId: e.target.value }))}
+                label="Unidade"
+                IconComponent={NiChevronDownSmall}
+                MenuProps={{ className: "outlined" }}
+              >
+                {locations.map((loc) => (
+                  <MenuItem key={loc.id} value={loc.id}>
+                    {loc.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl variant="outlined" size="small" fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={form.status}
+                onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as EmployeeStatus }))}
+                label="Status"
+                IconComponent={NiChevronDownSmall}
+                MenuProps={{ className: "outlined" }}
+              >
+                <MenuItem value="ACTIVE">Ativo</MenuItem>
+                <MenuItem value="INACTIVE">Inativo</MenuItem>
+                <MenuItem value="ON_LEAVE">Afastado</MenuItem>
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions className="gap-2 px-6 pb-4">
+            <Button variant="outlined" onClick={closeModal}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="contained" color="primary" disabled={saving}>
+              {saving ? "Salvando…" : "Salvar"}
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
 
       <Card>
         <CardContent className="p-0">
@@ -263,8 +275,9 @@ export function Employees() {
             <DataGrid
               rows={employees}
               columns={employeeColumns(locations, startEdit, handleDelete)}
-              hideFooter={employees.length <= 100}
-              pageSizeOptions={[10, 25, 50]}
+              localeText={dataGridLocalePtBR}
+              initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
+              pageSizeOptions={[10, 25, 50, 100]}
               disableColumnFilter
               disableColumnSelector
               disableDensitySelector
@@ -330,7 +343,11 @@ function employeeColumns(
       renderCell: (params: GridRenderCellParams<Employee, string>) => {
         const emp = params.row;
         return (
-          <Box className="flex gap-2">
+          <Box
+          className="flex gap-2"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
             <Button size="small" variant="contained" color="primary" onClick={() => startEdit(emp)}>
               Editar
             </Button>

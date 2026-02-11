@@ -21,6 +21,9 @@ export class Task {
   @Column({ name: 'scheduled_date', type: 'date' })
   scheduledDate: Date;
 
+  @Column({ name: 'scheduled_time', type: 'varchar', length: 5, nullable: true })
+  scheduledTime: string | null;
+
   @Column({ default: 'PENDING' })
   status: string;
 

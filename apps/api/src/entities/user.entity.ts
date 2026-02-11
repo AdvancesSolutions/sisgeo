@@ -14,6 +14,9 @@ export class User {
   @Column()
   name: string;
 
+  @Column({ name: 'employee_id', nullable: true })
+  employeeId: string | null;
+
   @Column({ unique: true })
   email: string;
 

@@ -5,5 +5,6 @@ export { Area } from './area.entity';
 export { Task } from './task.entity';
 export { TaskPhoto } from './task-photo.entity';
 export { Material } from './material.entity';
+export { MaterialComment } from './material-comment.entity';
 export { TimeClock } from './time-clock.entity';
 export { AuditLog } from './audit-log.entity';

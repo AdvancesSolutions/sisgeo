@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, ListTodo, Clock, Camera, LogOut } from 'lucide-react-native';
 import { HomeScreen } from '../screens/HomeScreen';
 import { TasksScreen } from '../screens/TasksScreen';
@@ -50,12 +51,18 @@ function LogoutButton() {
 }
 
 export function MainTabs() {
+  const insets = useSafeAreaInsets();
+  const tabBarPaddingBottom = Math.max(insets.bottom, 12) + 8;
   return (
     <Tab.Navigator
       screenOptions={{
         headerStyle: { backgroundColor: '#0f172a' },
         headerTintColor: '#f8fafc',
-        tabBarStyle: { backgroundColor: '#1e293b' },
+        tabBarStyle: {
+          backgroundColor: '#1e293b',
+          paddingBottom: tabBarPaddingBottom,
+          height: 56 + tabBarPaddingBottom,
+        },
         tabBarActiveTintColor: '#0ea5e9',
         tabBarInactiveTintColor: '#64748b',
       }}

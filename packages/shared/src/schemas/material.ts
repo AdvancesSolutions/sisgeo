@@ -15,6 +15,11 @@ export const stockMovementSchema = z.object({
   ref: z.string().optional(),
 });
 
+export const materialCommentSchema = z.object({
+  body: z.string().min(1, 'Comentário não pode ser vazio').max(2000, 'Máximo 2000 caracteres'),
+});
+
 export type MaterialInput = z.infer<typeof materialSchema>;
 export type MaterialUpdateInput = z.infer<typeof materialUpdateSchema>;
 export type StockMovementInput = z.infer<typeof stockMovementSchema>;
+export type MaterialCommentInput = z.infer<typeof materialCommentSchema>;
