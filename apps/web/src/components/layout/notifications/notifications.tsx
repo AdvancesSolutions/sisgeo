@@ -78,10 +78,12 @@ export default function Notifications() {
       type: "user",
       time: "2 minutes ago",
       href: "/pages/ecommerce/product-detail",
-      avatarImage: "/images/avatars/avatar-1.jpg",
+      avatarIcon: "NiUser",
+      avatarColorBackground: "bg-primary-light/10",
+      avatarColorMain: "text-primary",
       temporaryUnread: true,
       markedUnread: false,
-      chips: [{ label: "product-1.jpg", image: "/images/products/product-1.jpg", id: "1001" }],
+      chips: [{ label: "product-1.jpg", id: "1001" }],
     },
     {
       id: "101",
@@ -90,7 +92,9 @@ export default function Notifications() {
       type: "user",
       time: "14 minutes ago",
       href: "/pages/support/issue-detail",
-      avatarImage: "/images/avatars/avatar-2.jpg",
+      avatarIcon: "NiUser",
+      avatarColorBackground: "bg-secondary-light/10",
+      avatarColorMain: "text-secondary",
       temporaryUnread: true,
       markedUnread: false,
       chips: [
@@ -104,7 +108,9 @@ export default function Notifications() {
       labelRegular: "requested editor access.",
       type: "user",
       time: "20 minutes ago",
-      avatarImage: "/images/avatars/avatar-3.jpg",
+      avatarIcon: "NiUser",
+      avatarColorBackground: "bg-accent-1-light/10",
+      avatarColorMain: "text-accent-1",
       temporaryUnread: false,
       markedUnread: false,
       actions: [
@@ -119,7 +125,9 @@ export default function Notifications() {
       type: "user",
       time: "2 hours ago",
       href: "/pages/user/social",
-      avatarImage: "/images/avatars/avatar-4.jpg",
+      avatarIcon: "NiUser",
+      avatarColorBackground: "bg-accent-2-light/10",
+      avatarColorMain: "text-accent-2",
       temporaryUnread: false,
       markedUnread: false,
     },
@@ -471,7 +479,7 @@ function NotificationItem({
   id,
   labelBold,
   labelRegular,
-  type,
+  type: _type,
   avatarImage,
   avatarIcon,
   avatarColorMain,
@@ -540,12 +548,14 @@ function NotificationItem({
           to={href ? href : "#"}
         >
           <ListItemAvatar>
-            {type === "user" ? (
+            {avatarImage ? (
               <Avatar alt="notificaiton avatar" src={avatarImage} className="me-3" />
-            ) : (
-              <Avatar className={cn("medium me-3", avatarColorBackground)}>
-                <NextureIcons icon={avatarIcon as IconName} className={avatarColorMain} />
+            ) : avatarIcon ? (
+              <Avatar className={cn("medium me-3", avatarColorBackground ?? "bg-grey-100")}>
+                <NextureIcons icon={avatarIcon as IconName} className={avatarColorMain ?? "text-grey-600"} />
               </Avatar>
+            ) : (
+              <Avatar alt="notificaiton avatar" className="me-3" />
             )}
           </ListItemAvatar>
           <Box className="flex flex-col items-start gap-2">

@@ -209,10 +209,10 @@ export function Login() {
 
                   <Box className="flex flex-col gap-2">
                     <Link
-                      to="#"
+                      to="/forgot-password"
                       className="link-text-secondary link-underline-hover text-center text-sm font-semibold"
                     >
-                      Redefinir senha
+                      Esqueci minha senha
                     </Link>
                     <Button type="submit" variant="contained" className="mb-4" disabled={isLoading}>
                       {isLoading ? "Entrando..." : "Continuar"}

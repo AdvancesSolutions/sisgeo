@@ -80,6 +80,14 @@ export interface Photo {
   createdAt: Date;
 }
 
+export interface CleaningType {
+  id: string;
+  name: string;
+  description?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Material {
   id: string;
   name: string;

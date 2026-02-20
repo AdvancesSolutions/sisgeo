@@ -177,6 +177,33 @@ export class TasksService {
     }
   }
 
+  /** Marca como LATE tarefas cujo scheduled_date + scheduled_time já passou e status é PENDING ou IN_PROGRESS. */
+  async markLateTasks(): Promise<number> {
+    const now = new Date();
+    const tasks = await this.repo.find({
+      where: [{ status: 'PENDING' }, { status: 'IN_PROGRESS' }],
+    });
+    let count = 0;
+    for (const t of tasks) {
+      const scheduledDate = new Date(t.scheduledDate);
+      scheduledDate.setHours(0, 0, 0, 0);
+      let deadline: Date;
+      if (t.scheduledTime && /^\d{1,2}:\d{2}$/.test(t.scheduledTime)) {
+        const [h, m] = t.scheduledTime.split(':').map(Number);
+        deadline = new Date(scheduledDate);
+        deadline.setHours(h, m, 0, 0);
+      } else {
+        deadline = new Date(scheduledDate);
+        deadline.setHours(23, 59, 59, 999);
+      }
+      if (now > deadline) {
+        await this.repo.update(t.id, { status: 'LATE' });
+        count++;
+      }
+    }
+    return count;
+  }
+
   async remove(id: string, userId?: string): Promise<void> {
     const task = await this.findOne(id);
     if (task.status === 'DONE') {

@@ -9,6 +9,8 @@ import type { MenuItem } from "@/types/types";
 
 import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
+import { ForgotPassword } from "@/pages/ForgotPassword";
+import { ResetPassword } from "@/pages/ResetPassword";
 import { Tasks } from "@/pages/Tasks";
 import { TaskDetail } from "@/pages/TaskDetail";
 import { Employees } from "@/pages/Employees";
@@ -17,6 +19,7 @@ import { Locations } from "@/pages/Locations";
 import { Areas } from "@/pages/Areas";
 import { Validation } from "@/pages/Validation";
 import { Materials } from "@/pages/Materials";
+import { CleaningTypes } from "@/pages/CleaningTypes";
 import { TimeClock } from "@/pages/TimeClock";
 import { Reports } from "@/pages/Reports";
 import { Audit } from "@/pages/Audit";
@@ -41,6 +44,7 @@ function generateRoutesFromMenuItems(menuItems: MenuItem[]): React.ReactElement[
     else if (path === "areas") routes.push(<Route key={item.id} path={path} element={<AdminOrSupervisorOnly><Areas /></AdminOrSupervisorOnly>} />);
     else if (path === "validation") routes.push(<Route key={item.id} path={path} element={<AdminOrSupervisorOnly><Validation /></AdminOrSupervisorOnly>} />);
     else if (path === "materials") routes.push(<Route key={item.id} path={path} element={<AdminOrSupervisorOnly><Materials /></AdminOrSupervisorOnly>} />);
+    else if (path === "cleaning-types") routes.push(<Route key={item.id} path={path} element={<AdminOrSupervisorOnly><CleaningTypes /></AdminOrSupervisorOnly>} />);
     else if (path === "timeclock") routes.push(<Route key={item.id} path={path} element={<TimeClock />} />);
     else if (path === "reports") routes.push(<Route key={item.id} path={path} element={<AdminOrSupervisorOnly><Reports /></AdminOrSupervisorOnly>} />);
     else if (path === "audit") routes.push(<Route key={item.id} path={path} element={<AdminOrSupervisorOnly><Audit /></AdminOrSupervisorOnly>} />);
@@ -58,6 +62,8 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/"
         element={

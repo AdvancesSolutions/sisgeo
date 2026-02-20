@@ -24,6 +24,7 @@ export const leftMenuItems: MenuItem[] = [
       { id: "areas", label: "Áreas", href: "/areas", icon: "NiCells" },
       { id: "validation", label: "Validação", href: "/validation", icon: "NiCheckSquare" },
       { id: "materials", label: "Materiais", href: "/materials", icon: "NiBasket" },
+      { id: "cleaning-types", label: "Tipos de Limpeza", href: "/cleaning-types", icon: "NiCells" },
       { id: "reports", label: "Relatórios", href: "/reports", icon: "NiChartPie" },
       { id: "audit", label: "Auditoria", href: "/audit", icon: "NiDocumentFull" },
     ],

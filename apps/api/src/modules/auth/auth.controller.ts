@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthService, LoginResult } from './auth.service';
-import { loginSchema, refreshTokenSchema } from '@sigeo/shared';
+import { loginSchema, refreshTokenSchema, forgotPasswordSchema, resetPasswordSchema } from '@sigeo/shared';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -22,6 +22,20 @@ export class AuthController {
   async refresh(@Body() body: unknown): Promise<LoginResult> {
     const { refreshToken } = refreshTokenSchema.parse(body);
     return this.auth.refresh(refreshToken);
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Solicitar redefinição de senha' })
+  async forgotPassword(@Body() body: unknown) {
+    const { email } = forgotPasswordSchema.parse(body);
+    return this.auth.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Redefinir senha com token' })
+  async resetPassword(@Body() body: unknown) {
+    const { token, newPassword } = resetPasswordSchema.parse(body);
+    return this.auth.resetPassword(token, newPassword);
   }
 
   @Get('me')

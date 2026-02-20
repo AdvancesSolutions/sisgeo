@@ -110,7 +110,7 @@
     --layout-duration: 0ms;
 
     /* --------- Background --------- */
-    --bg-waves: url("/images/misc/bg-light.jpg");
+    --bg-waves: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     /* --------- Background --------- */
 
     color-scheme: light;
@@ -206,7 +206,7 @@
     /* --------- Light Line --------- */
 
     /* --------- Background --------- */
-    --bg-waves: url("/images/misc/bg-dark.jpg");
+    --bg-waves: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     /* --------- Background --------- */
 
     color-scheme: dark;

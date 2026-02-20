@@ -31,5 +31,16 @@ export const rejectTaskSchema = z.object({
 });
 export type RejectTaskInput = z.infer<typeof rejectTaskSchema>;
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('E-mail inválido'),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token obrigatório'),
+  newPassword: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

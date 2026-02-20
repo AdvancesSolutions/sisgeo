@@ -1,10 +1,28 @@
 import { Controller, Get } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 
 @Controller()
 export class HealthController {
+  constructor(private readonly ds: DataSource) {}
+
   @Get('health')
   check() {
     return { status: 'ok' };
+  }
+
+  /** Verifica conectividade com o banco (útil para diagnosticar 500). */
+  @Get('health/db')
+  async checkDb() {
+    try {
+      await this.ds.query('SELECT 1');
+      return { db: 'ok' };
+    } catch (e) {
+      const err = e as Error;
+      return {
+        db: 'error',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Database connection failed',
+      };
+    }
   }
 
   /** Endpoint para verificar versão em produção (inclui employee-access). */
