@@ -1,5 +1,15 @@
 -- Migração inicial: cria tabelas base se não existirem (para DB vazio)
--- Ordem: locations -> areas, employees -> tasks, task_photos
+-- Ordem: users, locations -> areas, employees -> tasks, task_photos
+
+CREATE TABLE IF NOT EXISTS users (
+  id uuid PRIMARY KEY,
+  name varchar(255) NOT NULL,
+  email varchar(255) UNIQUE NOT NULL,
+  role varchar(50) NOT NULL,
+  password_hash varchar(255) NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
 
 CREATE TABLE IF NOT EXISTS locations (
   id uuid PRIMARY KEY,

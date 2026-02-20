@@ -26,6 +26,8 @@ COPY --from=builder /app/packages/shared ./packages/shared
 COPY --from=builder /app/apps/api/package.json ./apps/api/
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/src/db/migrations ./apps/api/src/db/migrations
+COPY --from=builder /app/apps/api/src/db/run-migrations.mjs ./apps/api/src/db/run-migrations.mjs
 EXPOSE 3000
 WORKDIR /app
-CMD ["node", "apps/api/dist/main.js"]
+CMD ["sh", "-c", "node apps/api/src/db/run-migrations.mjs && exec node apps/api/dist/main.js"]
