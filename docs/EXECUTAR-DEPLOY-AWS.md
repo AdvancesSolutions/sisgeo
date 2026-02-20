@@ -1,8 +1,16 @@
 # Executar o deploy AWS agora
 
-## Erro 500 em /tasks ou outros endpoints
+## Migrações automáticas na inicialização
 
-Se a API retorna 500, geralmente é banco de dados (tabelas/colunas ausentes). Execute:
+A partir desta versão, **as migrações rodam automaticamente** quando o container da API inicia. Não é mais necessário rodar `db:migrate` manualmente em produção, desde que o deploy use a imagem Docker atualizada.
+
+Se ainda houver erro 500 após um novo deploy, confira as variáveis de ambiente do container (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME) e o endpoint `/health`.
+
+---
+
+## Erro 500 em /tasks ou outros endpoints (fallback manual)
+
+Se a API retorna 500 e as migrações automáticas não rodaram (ex.: deploy antigo), execute manualmente:
 
 ```powershell
 cd d:\SERVIDOR\SISGEO
