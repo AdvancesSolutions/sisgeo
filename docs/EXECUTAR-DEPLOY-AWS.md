@@ -1,5 +1,27 @@
 # Executar o deploy AWS agora
 
+## Erro 500 em /tasks ou outros endpoints
+
+Se a API retorna 500, geralmente é banco de dados (tabelas/colunas ausentes). Execute:
+
+```powershell
+cd d:\SERVIDOR\SISGEO
+$env:NODE_ENV="production"
+$env:DB_HOST="SEU_RDS_ENDPOINT"
+$env:DB_PASSWORD="SUA_SENHA"
+$env:DB_NAME="sigeo"
+pnpm --filter @sigeo/api run db:migrate
+```
+
+Se o banco estiver vazio, rode antes o bootstrap:
+```powershell
+pnpm --filter @sigeo/api run db:bootstrap
+```
+
+Para diagnosticar: acesse `https://sua-api/health/db` – se retornar `{ db: "error" }`, o problema é conexão ou schema.
+
+---
+
 ## Migração: employee_id em users (Acessos dos Funcionários)
 
 **Opção 1 – Script Node (recomendado):**

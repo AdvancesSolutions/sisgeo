@@ -7,11 +7,12 @@ import { Employee } from '../../entities/employee.entity';
 import { AuditModule } from '../audit/audit.module';
 import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
+import { TasksSchedulerService } from './tasks-scheduler.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Task, TaskPhoto, Area, Employee]), AuditModule],
   controllers: [TasksController],
-  providers: [TasksService],
+  providers: [TasksService, TasksSchedulerService],
   exports: [TasksService],
 })
 export class TasksModule {}
