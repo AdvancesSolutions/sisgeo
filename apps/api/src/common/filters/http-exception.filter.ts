@@ -52,13 +52,17 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     const err = exception as Error;
-    this.logger.error(`500 Internal Server Error requestId=${requestId} path=${req.method} ${req.path}`, err?.message);
-    if (process.env.NODE_ENV === 'development' && err?.stack) {
-      this.logger.debug(err.stack);
+    const errMessage = err?.message ?? String(exception);
+    this.logger.error(`[500] requestId=${requestId} ${req.method} ${req.path} error=${errMessage}`);
+    if (err?.stack) {
+      this.logger.error(err.stack);
     }
+    const isDev = process.env.NODE_ENV === 'development';
+    const showError = isDev || process.env.DEBUG_ERROR_MESSAGE === '1';
+    const safeMessage = showError ? errMessage.replace(/\b(password|secret|token)=[^\s]+/gi, '$1=***') : 'Erro interno. Tente novamente.';
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: 'Erro interno. Tente novamente.',
+      message: safeMessage,
       error: 'Internal Server Error',
       requestId,
     });

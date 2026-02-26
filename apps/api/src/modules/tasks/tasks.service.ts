@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, Optional } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
@@ -23,6 +23,8 @@ const MIN_PHOTOS_AFTER = 1;
 
 @Injectable()
 export class TasksService {
+  private readonly logger = new Logger(TasksService.name);
+
   constructor(
     @InjectRepository(Task)
     private readonly repo: Repository<Task>,
@@ -135,13 +137,31 @@ export class TasksService {
   }
 
   async findOneWithPhotos(id: string): Promise<Task & { photos?: TaskPhoto[]; area?: Area }> {
-    const task = await this.repo.findOne({
-      where: { id },
-      relations: ['area', 'area.location', 'employee'],
-    });
-    if (!task) throw new NotFoundException('Tarefa não encontrada');
-    const photos = await this.photoRepo.find({ where: { taskId: id }, order: { type: 'ASC', createdAt: 'DESC' } });
-    return { ...task, photos };
+    try {
+      let task = await this.repo.findOne({
+        where: { id },
+        relations: ['area', 'employee'],
+      });
+      if (!task) throw new NotFoundException('Tarefa não encontrada');
+      const photos = await this.photoRepo
+        .createQueryBuilder('p')
+        .where('p.task_id = :taskId', { taskId: id })
+        .orderBy('p.type', 'ASC')
+        .addOrderBy('p.created_at', 'DESC')
+        .getMany();
+      return { ...task, photos };
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
+      this.logger.warn(`findOneWithPhotos(${id}) relations failed, fallback without relations: ${(e as Error)?.message}`);
+      const task = await this.repo.findOne({ where: { id } });
+      if (!task) throw new NotFoundException('Tarefa não encontrada');
+      const [area, employee, photos] = await Promise.all([
+        task.areaId ? this.areaRepo.findOne({ where: { id: task.areaId }, select: ['id', 'name'] }).catch(() => null) : Promise.resolve(null),
+        task.employeeId ? this.employeeRepo.findOne({ where: { id: task.employeeId }, select: ['id', 'name'] }).catch(() => null) : Promise.resolve(null),
+        this.photoRepo.find({ where: { taskId: id }, order: { type: 'ASC', createdAt: 'DESC' } }),
+      ]);
+      return { ...task, area: area ?? undefined, employee: employee ?? undefined, photos };
+    }
   }
 
   async getPhotos(taskId: string): Promise<TaskPhoto[]> {

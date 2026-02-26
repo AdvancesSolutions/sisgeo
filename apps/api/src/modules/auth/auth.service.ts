@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, ServiceUnavailableException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -21,6 +21,8 @@ export interface LoginResult {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
@@ -29,16 +31,41 @@ export class AuthService {
   ) {}
 
   async login(email: string, password: string): Promise<LoginResult> {
-    console.log(`[AuthService] Login attempt for: ${email}`);
-    const user = await this.userRepo.findOne({ where: { email } });
-    if (!user) {
-      throw new UnauthorizedException('Credenciais inválidas');
+    try {
+      const user = await this.userRepo.findOne({ where: { email } });
+      if (!user) {
+        throw new UnauthorizedException('Credenciais inválidas');
+      }
+      if (!user.passwordHash?.length) {
+        this.logger.warn(`Login: user ${user.email} sem passwordHash`);
+        throw new UnauthorizedException('Credenciais inválidas');
+      }
+      const ok = await bcrypt.compare(password, user.passwordHash);
+      if (!ok) {
+        throw new UnauthorizedException('Credenciais inválidas');
+      }
+      return this.issueTokens(user);
+    } catch (e) {
+      if (e instanceof UnauthorizedException || e instanceof ServiceUnavailableException) throw e;
+      const err = e as Error & { cause?: Error };
+      const msg = err?.message ?? String(e);
+      const causeMsg = err?.cause?.message ?? '';
+      const full = `${msg} ${causeMsg}`.toLowerCase();
+      this.logger.error(`Login error: ${msg}`, err?.stack);
+      const isDbOrConn =
+        full.includes('password authentication') ||
+        full.includes('econnrefused') ||
+        full.includes('connection refused') ||
+        full.includes('connect econnrefused') ||
+        full.includes('timeout') ||
+        full.includes('connection') && full.includes('refused') ||
+        (full.includes('relation') && full.includes('does not exist'));
+      const isJwt = full.includes('secret') || full.includes('jwt') || full.includes('sign');
+      if (isDbOrConn || isJwt) {
+        throw new ServiceUnavailableException('Serviço temporariamente indisponível. Tente novamente em instantes.');
+      }
+      throw e;
     }
-    const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) {
-      throw new UnauthorizedException('Credenciais inválidas');
-    }
-    return this.issueTokens(user);
   }
 
   async getMe(userId: string): Promise<{ id: string; name: string; email: string; role: string; employeeId?: string | null }> {

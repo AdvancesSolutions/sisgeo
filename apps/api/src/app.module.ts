@@ -37,6 +37,14 @@ import { BullModule } from '@nestjs/bullmq';
 
 const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
 
+/** Conexão Redis com lazyConnect para não derrubar a API se Redis estiver indisponível (ex.: ECS sem ElastiCache). */
+const bullConnection = {
+  url: redisUrl,
+  lazyConnect: true,
+  maxRetriesPerRequest: null,
+  retryStrategy: () => null,
+};
+
 /** API SIGEO - EmployeeAccessModule em produção */
 @Module({
   imports: [
@@ -45,7 +53,7 @@ const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
     TypeOrmModule.forRoot(getDbConfig()),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     BullModule.forRoot({
-      connection: { url: redisUrl },
+      connection: bullConnection,
     }),
     AuthModule,
     AuditModule,
