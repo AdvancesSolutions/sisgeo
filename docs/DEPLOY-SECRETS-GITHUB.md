@@ -15,19 +15,37 @@ O **frontend** é implantado pelo **AWS Amplify** sempre que há push no branch 
 
 Configure em **GitHub → Repositório → Settings → Secrets and variables → Actions**.
 
-**Sincronização automática:** se você tem um arquivo `.env.production` na raiz com as chaves preenchidas, use o script para configurar todos os secrets de uma vez:
+**Sincronização automática:** se você tem um arquivo `.env.production` na raiz com as chaves preenchidas, use o script para configurar todos os secrets de uma vez.
 
-```powershell
-.\scripts\sync-env-to-github-secrets.ps1
-```
+### Como rodar o sync de forma segura
 
-Ou em Linux/macOS:
+1. **Certifique-se de estar no repositório correto** (o `gh` usa o remoto `origin`):
+   ```powershell
+   git remote -v
+   ```
 
-```bash
-./scripts/sync-env-to-github-secrets.sh
-```
+2. **Autentique o gh CLI** (se ainda não fez):
+   ```powershell
+   gh auth login
+   ```
 
-Requer [gh CLI](https://cli.github.com/) instalado e autenticado (`gh auth login`). O script ignora linhas vazias, comentários e variáveis sem valor.
+3. **Simule antes** (opcional — só mostra o que seria enviado):
+   ```powershell
+   cd d:\SERVIDOR\SISGEO
+   .\scripts\sync-env-to-github-secrets.ps1 -DryRun
+   ```
+
+4. **Execute o sync** (envia cada variável via `gh secret set`; os valores passam por stdin, não aparecem no log):
+   ```powershell
+   .\scripts\sync-env-to-github-secrets.ps1
+   ```
+
+5. **Se usar outro arquivo** (ex.: `apps/api/.env.production`):
+   ```powershell
+   .\scripts\sync-env-to-github-secrets.ps1 -EnvFile "apps\api\.env.production"
+   ```
+
+O script ignora linhas vazias, comentários e variáveis sem valor. Requer [gh CLI](https://cli.github.com/) instalado.
 
 Para o deploy automático, inclua no `.env.production` também as chaves específicas do workflow: `ECR_REPO`, `CLUSTER_NAME`, `SERVICE_NAME`, `SSM_DB_PASSWORD_PARAM` (veja tabela abaixo).
 
@@ -47,13 +65,91 @@ Para o deploy automático, inclua no `.env.production` também as chaves especí
 
 ---
 
+## Mapeamento: obter nomes exatos do ECS (evitar erros de digitação)
+
+Rode os comandos abaixo no terminal (ajuste `--region` se necessário) para copiar os nomes exatos para `CLUSTER_NAME` e `SERVICE_NAME`:
+
+```powershell
+# 1. Listar clusters ECS (copie o nome depois da última barra)
+aws ecs list-clusters --region sa-east-1 --output table
+
+# 2. Listar serviços de um cluster (substitua NOME_DO_CLUSTER pelo resultado do passo 1)
+aws ecs list-services --cluster NOME_DO_CLUSTER --region sa-east-1 --output table
+```
+
+Para ver os nomes completos em formato JSON (fácil de copiar):
+
+```powershell
+# Clusters
+aws ecs list-clusters --region sa-east-1 --query "clusterArns[]" --output text
+
+# Serviços (substitua sigeo-cluster pelo nome do seu cluster)
+aws ecs list-services --cluster sigeo-cluster --region sa-east-1 --query "serviceArns[]" --output text
+```
+
+Os ARNs retornam como `arn:aws:ecs:sa-east-1:123456789:cluster/nome-do-cluster`. O nome a usar no secret é apenas **`nome-do-cluster`** (a parte após a última `/`).
+
+---
+
+## Secrets críticos para evitar o erro 254 (build-and-deploy)
+
+O **exit code 254** no job `build-and-deploy` costuma indicar:
+
+- **Credenciais inválidas ou ausentes** — `AWS_ACCESS_KEY_ID` ou `AWS_SECRET_ACCESS_KEY` vazios/incorretos
+- **Cluster ou serviço inexistente** — `CLUSTER_NAME` ou `SERVICE_NAME` errados
+- **Permissões IAM insuficientes** — falta `ecs:UpdateService`, `ecs:DescribeServices`, etc.
+
+**Secrets essenciais para o job build-and-deploy (se qualquer um estiver vazio, o erro 254 é provável):**
+
+| Secret | Criticidade | Efeito se vazio |
+|--------|-------------|------------------|
+| `AWS_ACCESS_KEY_ID` | **Crítico** | Falha na autenticação AWS |
+| `AWS_SECRET_ACCESS_KEY` | **Crítico** | Falha na autenticação AWS |
+| `ECR_REPO` | **Crítico** | Tag Docker inválida; push falha |
+| `CLUSTER_NAME` | **Crítico** | `ClusterNotFoundException` → exit 254 |
+| `SERVICE_NAME` | **Crítico** | `ServiceNotFoundException` → exit 254 |
+| `AWS_REGION` | Médio | Tem default `sa-east-1`; se incorreto, cluster não é encontrado |
+
+**Pré-validação:** o workflow inclui um step "Pre-flight Check" que falha antes do build se algum desses secrets estiver ausente. Rode localmente antes de commitar:
+
+```bash
+./scripts/check-deploy-secrets.sh
+```
+
+Ou valide o `.env.production` antes de sincronizar com `sync-env-to-github-secrets`.
+
+---
+
 ## Permissões IAM mínimas para o usuário do GitHub Actions
 
 O usuário IAM cujas credenciais estão em `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` precisa de:
 
 - **ECR:** `GetAuthorizationToken`; e no repositório: `BatchGetImage`, `GetDownloadUrlForLayer`, `PutImage`, `InitiateLayerUpload`, `UploadLayerPart`, `CompleteLayerUpload`, `BatchCheckLayerAvailability`.
-- **ECS:** `UpdateService`, `DescribeServices`, `DescribeTasks`, `ListTasks` (e permissões de leitura para cluster/service/task definition).
+- **ECS:** `UpdateService`, `DescribeClusters`, `DescribeServices`, `DescribeTasks`, `ListTasks` (e permissões de leitura para cluster/service/task definition).
 - **SSM:** `GetParameter` (no parâmetro da senha) e **KMS:** `Decrypt` (se o parâmetro for do tipo SecureString).
+
+> **Incluído para os steps de verificação:** `ecs:DescribeClusters` e `ecs:DescribeServices` são usados pelo Pre-flight no workflow para validar cluster e serviço antes do deploy.
+
+**Política Inline (exemplo) para ECS:**
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecs:UpdateService",
+        "ecs:DescribeClusters",
+        "ecs:DescribeServices",
+        "ecs:DescribeTasks",
+        "ecs:ListTasks"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
 
 Pode usar uma política customizada ou anexar as managed policies:  
 `AmazonEC2ContainerRegistryPowerUser`, `AmazonECS_FullAccess` (ou uma política mais restrita só para o cluster/serviço) e uma política que permita `ssm:GetParameter` + `kms:Decrypt` no parâmetro usado em `SSM_DB_PASSWORD_PARAM`.

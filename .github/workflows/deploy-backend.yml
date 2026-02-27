@@ -80,6 +80,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Pre-flight Check (validar Secrets)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ECR_REPO: ${{ secrets.ECR_REPO }}
+          CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+          SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
+          AWS_REGION: ${{ secrets.AWS_REGION || 'sa-east-1' }}
+        run: |
+          MISSING=()
+          [[ -z "$AWS_ACCESS_KEY_ID" ]] && MISSING+=("AWS_ACCESS_KEY_ID")
+          [[ -z "$AWS_SECRET_ACCESS_KEY" ]] && MISSING+=("AWS_SECRET_ACCESS_KEY")
+          [[ -z "$ECR_REPO" ]] && MISSING+=("ECR_REPO")
+          [[ -z "$CLUSTER_NAME" ]] && MISSING+=("CLUSTER_NAME")
+          [[ -z "$SERVICE_NAME" ]] && MISSING+=("SERVICE_NAME")
+          [[ -z "$AWS_REGION" ]] && MISSING+=("AWS_REGION")
+          if [[ ${#MISSING[@]} -gt 0 ]]; then
+            echo "::error::Secrets ausentes ou vazios: ${MISSING[*]}"
+            echo "Configure em GitHub → Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          echo "✓ Todos os secrets obrigatórios do job build-and-deploy estão configurados."
+
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -102,9 +125,30 @@ jobs:
           docker push ${{ steps.ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:latest
 
       - name: Deploy to ECS (force new deployment)
+        env:
+          CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+          SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
         run: |
-          aws ecs update-service \
-            --cluster ${{ secrets.CLUSTER_NAME }} \
-            --service ${{ secrets.SERVICE_NAME }} \
+          set -e
+          echo "Verificando se o cluster '$CLUSTER_NAME' existe..."
+          if ! aws ecs describe-clusters --clusters "$CLUSTER_NAME" --region ${{ env.AWS_REGION }} --query 'clusters[0].status' --output text 2>/dev/null | grep -q ACTIVE; then
+            echo "::error::Cluster ECS não encontrado: $CLUSTER_NAME"
+            echo "Verifique CLUSTER_NAME no GitHub Secrets e se o cluster existe na região ${{ env.AWS_REGION }}."
+            exit 1
+          fi
+          echo "Verificando se o serviço '$SERVICE_NAME' existe..."
+          if ! aws ecs describe-services --cluster "$CLUSTER_NAME" --services "$SERVICE_NAME" --region ${{ env.AWS_REGION }} --query 'services[0].status' --output text 2>/dev/null | grep -q ACTIVE; then
+            echo "::error::Serviço ECS não encontrado: $SERVICE_NAME no cluster $CLUSTER_NAME"
+            echo "Verifique SERVICE_NAME e CLUSTER_NAME no GitHub Secrets."
+            exit 1
+          fi
+          echo "Atualizando serviço ECS..."
+          if ! aws ecs update-service \
+            --cluster "$CLUSTER_NAME" \
+            --service "$SERVICE_NAME" \
             --force-new-deployment \
-            --region ${{ env.AWS_REGION }}
+            --region ${{ env.AWS_REGION }}; then
+            echo "::error::Falha no aws ecs update-service (possível exit 254)"
+            echo "Causas comuns: permissões IAM (ecs:UpdateService), cluster/serviço incorretos, credenciais inválidas."
+            exit 1
+          fi
