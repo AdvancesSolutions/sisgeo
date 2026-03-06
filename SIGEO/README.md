@@ -68,6 +68,17 @@ REACT_APP_API_URL=https://api.sigeo.advances.com.br
 npm run dev
 ```
 
+**Manter o build do Amplify estável (CI/CD):**  
+O Amplify usa `npm ci`, que exige `package.json` e `package-lock.json` sincronizados. Ao adicionar ou atualizar dependências, sempre rode na pasta **SIGEO** (raiz do frontend):
+
+```bash
+npm install
+npm ci   # testar localmente; se passar, o build na AWS tende a passar
+git add package-lock.json
+git commit -m "fix: sincroniza package-lock para build do Amplify"
+git push origin main
+```
+
 ---
 
 ## 🔒 Regras de Usuário (RBAC)
