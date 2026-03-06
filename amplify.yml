@@ -12,6 +12,7 @@ frontend:
     build:
       commands:
         - cd SIGEO && npm run build
+        - ls -la SIGEO/dist
   artifacts:
     baseDirectory: SIGEO/dist
     files:
