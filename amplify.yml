@@ -1,6 +1,4 @@
-# Build spec do AWS Amplify — deploy automático ao push no branch conectado (ex.: main).
-# Conecte o app Amplify ao repositório GitHub e escolha o branch; o build usa os comandos abaixo.
-# Redirects/rewrites (SPA): Hosting → Rewrites and redirects (ver docs/AMPLIFY-SPA-REWRITE.md).
+# Build spec AWS Amplify — frontend em SIGEO/ (Vite + React).
 version: 1
 frontend:
   phases:
@@ -10,23 +8,17 @@ frontend:
         - nvm install 20
         - nvm use 20
         - node -v
-        - corepack enable
-        - corepack prepare
-        - pnpm install --frozen-lockfile
-        - pnpm --filter @sigeo/shared build
-        - pnpm --filter @sigeo/web build
+        - cd SIGEO && npm ci
     build:
       commands:
-        - echo "Build already done in preBuild"
+        - cd SIGEO && npm run build
   artifacts:
-    baseDirectory: apps/web/dist
+    baseDirectory: SIGEO/dist
     files:
       - '**/*'
   cache:
     paths:
-      - node_modules/**/*
-      - packages/shared/node_modules/**/*
-      - apps/web/node_modules/**/*
+      - SIGEO/node_modules/**/*
   customHeaders:
     - pattern: '**'
       headers:
