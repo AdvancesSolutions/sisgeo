@@ -1,0 +1,20 @@
+{
+  "appId": "com.sigeo.mobile",
+  "appName": "SIGEO Mobile",
+  "webDir": "dist",
+  "server": {
+    "url": "https://29dd73be-4954-485a-a17b-b8dd84da2cc1.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  },
+  "plugins": {
+    "Camera": {
+      "permissions": ["camera", "photos"]
+    },
+    "Geolocation": {
+      "permissions": ["location"]
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
+  }
+}

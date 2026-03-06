@@ -1,0 +1,65 @@
+{
+  "CallerReference": "sigeo-v2-frontend-2026",
+  "Comment": "SIGEO v2 Frontend",
+  "DefaultRootObject": "index.html",
+  "Aliases": {
+    "Quantity": 1,
+    "Items": ["sigeo-v2.advances.com.br"]
+  },
+  "Origins": {
+    "Quantity": 1,
+    "Items": [{
+      "Id": "sigeo-web-v2-s3",
+      "DomainName": "sigeo-web-v2-320674390105.s3.us-east-1.amazonaws.com",
+      "OriginPath": "",
+      "CustomHeaders": {"Quantity": 0},
+      "S3OriginConfig": {"OriginAccessIdentity": ""}
+    }]
+  },
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "sigeo-web-v2-s3",
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "ForwardedValues": {
+      "QueryString": false,
+      "Cookies": {"Forward": "none"},
+      "Headers": {"Quantity": 0},
+      "QueryStringCacheKeys": {"Quantity": 0}
+    },
+    "TrustedSigners": {"Enabled": false, "Quantity": 0},
+    "MinTTL": 0,
+    "DefaultTTL": 86400,
+    "MaxTTL": 31536000,
+    "Compress": true,
+    "AllowedMethods": {"Quantity": 2, "Items": ["HEAD", "GET"], "CachedMethods": {"Quantity": 2, "Items": ["HEAD", "GET"]}},
+    "SmoothStreaming": false,
+    "LambdaFunctionAssociations": {"Quantity": 0},
+    "FieldLevelEncryptionId": ""
+  },
+  "CacheBehaviors": {"Quantity": 0},
+  "CustomErrorResponses": {
+    "Quantity": 2,
+    "Items": [{
+      "ErrorCode": 403,
+      "ResponsePagePath": "/index.html",
+      "ResponseCode": "200",
+      "ErrorCachingMinTTL": 300
+    }, {
+      "ErrorCode": 404,
+      "ResponsePagePath": "/index.html",
+      "ResponseCode": "200",
+      "ErrorCachingMinTTL": 300
+    }]
+  },
+  "Logging": {"Enabled": false, "IncludeCookies": false, "Bucket": "", "Prefix": ""},
+  "PriceClass": "PriceClass_All",
+  "Enabled": true,
+  "ViewerCertificate": {
+    "ACMCertificateArn": "arn:aws:acm:us-east-1:320674390105:certificate/78a1d493-39b9-44d0-acb1-eef2f238a8ba",
+    "SSLSupportMethod": "sni-only",
+    "MinimumProtocolVersion": "TLSv1.2_2021"
+  },
+  "Restrictions": {"GeoRestriction": {"RestrictionType": "none", "Quantity": 0}},
+  "WebACLId": "",
+  "HttpVersion": "http2",
+  "IsIPV6Enabled": true
+}

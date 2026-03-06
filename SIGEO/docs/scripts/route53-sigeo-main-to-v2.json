@@ -1,0 +1,14 @@
+{
+  "Changes": [{
+    "Action": "UPSERT",
+    "ResourceRecordSet": {
+      "Name": "sigeo.advances.com.br",
+      "Type": "A",
+      "AliasTarget": {
+        "HostedZoneId": "Z2FDTNDATAQYW2",
+        "DNSName": "d2qar6y47tn4rs.cloudfront.net",
+        "EvaluateTargetHealth": false
+      }
+    }
+  }]
+}

@@ -1,0 +1,69 @@
+{
+  "CallerReference": "sigeo-advances-web-2026",
+  "Comment": "SIGEO - Aplicacao web",
+  "Enabled": true,
+  "DefaultRootObject": "index.html",
+  "Aliases": {
+    "Quantity": 1,
+    "Items": ["sigeo.advances.com.br"]
+  },
+  "Origins": {
+    "Quantity": 1,
+    "Items": [{
+      "Id": "sigeo-s3-origin",
+      "DomainName": "sigeo-advances-web-320674390105.s3.us-east-1.amazonaws.com",
+      "OriginPath": "",
+      "CustomHeaders": {"Quantity": 0},
+      "S3OriginConfig": {"OriginAccessIdentity": ""},
+      "ConnectionAttempts": 3,
+      "ConnectionTimeout": 10,
+      "OriginShield": {"Enabled": false},
+      "OriginAccessControlId": "EYEINLY0FOMCK"
+    }]
+  },
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "sigeo-s3-origin",
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "AllowedMethods": {
+      "Quantity": 2,
+      "Items": ["HEAD", "GET"],
+      "CachedMethods": {"Quantity": 2, "Items": ["HEAD", "GET"]}
+    },
+    "Compress": true,
+    "ForwardedValues": {
+      "QueryString": false,
+      "Cookies": {"Forward": "none"},
+      "Headers": {"Quantity": 0},
+      "QueryStringCacheKeys": {"Quantity": 0}
+    },
+    "MinTTL": 0,
+    "DefaultTTL": 86400,
+    "MaxTTL": 31536000,
+    "TrustedSigners": {"Enabled": false, "Quantity": 0},
+    "TrustedKeyGroups": {"Enabled": false, "Quantity": 0},
+    "SmoothStreaming": false,
+    "LambdaFunctionAssociations": {"Quantity": 0},
+    "FunctionAssociations": {"Quantity": 0},
+    "FieldLevelEncryptionId": ""
+  },
+  "CacheBehaviors": {"Quantity": 0},
+  "CustomErrorResponses": {
+    "Quantity": 2,
+    "Items": [
+      {"ErrorCode": 403, "ResponsePagePath": "/index.html", "ResponseCode": "200", "ErrorCachingMinTTL": 300},
+      {"ErrorCode": 404, "ResponsePagePath": "/index.html", "ResponseCode": "200", "ErrorCachingMinTTL": 300}
+    ]
+  },
+  "Logging": {"Enabled": false, "IncludeCookies": false, "Bucket": "", "Prefix": ""},
+  "PriceClass": "PriceClass_All",
+  "ViewerCertificate": {
+    "CloudFrontDefaultCertificate": false,
+    "ACMCertificateArn": "arn:aws:acm:us-east-1:320674390105:certificate/78a1d493-39b9-44d0-acb1-eef2f238a8ba",
+    "SSLSupportMethod": "sni-only",
+    "MinimumProtocolVersion": "TLSv1.2_2021"
+  },
+  "Restrictions": {"GeoRestriction": {"RestrictionType": "none", "Quantity": 0}},
+  "WebACLId": "",
+  "HttpVersion": "http2",
+  "IsIPV6Enabled": true
+}
